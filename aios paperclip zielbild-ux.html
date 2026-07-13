@@ -1,0 +1,679 @@
+<title>Whitelabel Agentic AIOS · Architektur-Zielbild</title>
+<style>
+  :root {
+    --ground: #F7F7F3;
+    --surface: #FFFFFF;
+    --surface-2: #EFEFE9;
+    --text: #171A21;
+    --text-2: #5A616E;
+    --line: #E0E0D8;
+    --volt: #F0B429;
+    --volt-deep: #8A6116;
+    --volt-wash: #FBF3DC;
+    --ok: #2E7D4F;
+    --ok-wash: #E4F0E8;
+    --plan: #9A6A10;
+    --plan-wash: #F6EDD8;
+    --open: #B0432E;
+    --open-wash: #F7E6E1;
+    --mono: "SF Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #14161B; --surface: #1C1F26; --surface-2: #23262E;
+      --text: #E8E9E4; --text-2: #9BA1AC; --line: #2C303A;
+      --volt: #F0B429; --volt-deep: #F0B429; --volt-wash: #2E2914;
+      --ok: #6FBF8F; --ok-wash: #1D2B22;
+      --plan: #D9A83E; --plan-wash: #2C2618;
+      --open: #E08A73; --open-wash: #301E19;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #14161B; --surface: #1C1F26; --surface-2: #23262E;
+    --text: #E8E9E4; --text-2: #9BA1AC; --line: #2C303A;
+    --volt: #F0B429; --volt-deep: #F0B429; --volt-wash: #2E2914;
+    --ok: #6FBF8F; --ok-wash: #1D2B22;
+    --plan: #D9A83E; --plan-wash: #2C2618;
+    --open: #E08A73; --open-wash: #301E19;
+  }
+  :root[data-theme="light"] {
+    --ground: #F7F7F3; --surface: #FFFFFF; --surface-2: #EFEFE9;
+    --text: #171A21; --text-2: #5A616E; --line: #E0E0D8;
+    --volt: #F0B429; --volt-deep: #8A6116; --volt-wash: #FBF3DC;
+    --ok: #2E7D4F; --ok-wash: #E4F0E8;
+    --plan: #9A6A10; --plan-wash: #F6EDD8;
+    --open: #B0432E; --open-wash: #F7E6E1;
+  }
+
+  body {
+    background: var(--ground); color: var(--text);
+    font-family: "Avenir Next", "Avenir", "Segoe UI", system-ui, sans-serif;
+    line-height: 1.65; margin: 0; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 78rem; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+  .col { max-width: 48rem; }
+
+  .eyebrow {
+    font-size: .75rem; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--volt-deep);
+    display: flex; align-items: center; gap: .55rem; margin: 0 0 .8rem;
+  }
+  .eyebrow::before {
+    content: ""; width: 1.1rem; height: 1.1rem; flex: none; background: var(--volt);
+    clip-path: polygon(58% 0, 22% 56%, 46% 56%, 40% 100%, 78% 42%, 53% 42%);
+  }
+  h1 {
+    font-size: clamp(1.9rem, 1.3rem + 2.4vw, 2.9rem);
+    line-height: 1.12; margin: 0 0 .9rem; font-weight: 700;
+    letter-spacing: -.015em; text-wrap: balance;
+  }
+  .lede { font-size: 1.08rem; color: var(--text-2); margin: 0 0 1.1rem; }
+  .meta { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 3.2rem; }
+
+  h2 { font-size: 1.45rem; margin: 3.6rem 0 .4rem; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
+  h2 .sec { color: var(--text-2); font-weight: 500; }
+  h3 { font-size: 1.05rem; margin: 1.7rem 0 .4rem; font-weight: 600; }
+  p { margin: .65rem 0; }
+  .sub { color: var(--text-2); margin: 0 0 1.4rem; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: .35em;
+    font-size: .72rem; font-weight: 600; letter-spacing: .02em;
+    padding: .18em .6em; border-radius: 99px; white-space: nowrap;
+  }
+  .chip.ok   { background: var(--ok-wash);   color: var(--ok); }
+  .chip.plan { background: var(--plan-wash); color: var(--plan); }
+  .chip.open { background: var(--open-wash); color: var(--open); }
+  .chip.ref  { background: var(--surface-2); color: var(--text-2); font-family: var(--mono); font-weight: 500; }
+
+  code { font-family: var(--mono); font-size: .85em; background: var(--surface-2); padding: .1em .35em; border-radius: 4px; }
+
+  .rule {
+    background: var(--volt-wash); border-left: 4px solid var(--volt);
+    padding: 1rem 1.25rem; margin: 1.4rem 0; border-radius: 0 8px 8px 0;
+  }
+  .rule strong { display: block; margin-bottom: .2rem; }
+
+  .honest {
+    background: var(--surface); border: 1px dashed var(--line);
+    padding: .9rem 1.15rem; margin: 1.2rem 0; border-radius: 8px;
+    color: var(--text-2); font-size: .95rem;
+  }
+  .honest strong { color: var(--text); }
+
+  .tblwrap { overflow-x: auto; margin: 1.2rem 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th {
+    text-align: left; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--text-2); font-weight: 600; padding: .65rem .85rem;
+    border-bottom: 1px solid var(--line); background: var(--surface-2);
+  }
+  td { padding: .6rem .85rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { font-weight: 600; }
+  td .m { font-family: var(--mono); font-size: .8rem; }
+  .c { text-align: center; }
+  td.c { font-weight: 500; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: .45rem; margin: .6rem 0 0; font-size: .8rem; color: var(--text-2); align-items: center; }
+
+  .mark { display: inline-block; min-width: 4.4em; text-align: center; font-size: .72rem; font-weight: 700; padding: .14em .5em; border-radius: 6px; }
+  .mark.full { background: var(--ok-wash); color: var(--ok); }
+  .mark.team { background: var(--volt-wash); color: var(--volt-deep); }
+  .mark.assign { background: var(--surface-2); color: var(--text-2); }
+  .mark.ro { background: var(--surface-2); color: var(--text-2); font-weight: 600; }
+  .mark.cfg { background: var(--plan-wash); color: var(--plan); }
+  .mark.no { color: var(--open); background: var(--open-wash); }
+
+  ol.journey { counter-reset: j; list-style: none; padding: 0; margin: 1.4rem 0; }
+  ol.journey li { counter-increment: j; position: relative; padding: 0 0 1.3rem 3rem; }
+  ol.journey li::before {
+    content: counter(j); position: absolute; left: 0; top: .05rem;
+    width: 1.9rem; height: 1.9rem; border-radius: 50%;
+    background: var(--text); color: var(--ground);
+    font-weight: 700; font-size: .9rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol.journey li:not(:last-child)::after {
+    content: ""; position: absolute; left: .93rem; top: 2.2rem; bottom: .1rem;
+    width: 2px; background: var(--line);
+  }
+  ol.journey b { display: block; }
+  ol.journey .d { color: var(--text-2); font-size: .95rem; }
+
+  .org { display: grid; grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr)); gap: 1rem; margin: 1.4rem 0; }
+  .team { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .9rem 1rem 1rem; }
+  .team .tname { font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+  .team .tname span { font-size: .7rem; color: var(--text-2); font-family: var(--mono); font-weight: 500; }
+  .team ul { list-style: none; margin: .6rem 0 0; padding: 0; font-size: .86rem; font-family: var(--mono); }
+  .team li { padding: .28rem .5rem; border-left: 2px solid var(--line); margin: .2rem 0 .2rem .35rem; }
+  .team li.lead { border-left-color: var(--volt); font-weight: 600; }
+  .team li em { font-family: inherit; font-style: normal; color: var(--text-2); font-size: .78rem; }
+
+  .phase { display: flex; gap: 1rem; margin: 1.1rem 0; }
+  .phase .n {
+    flex: none; width: 2rem; height: 2rem; border-radius: 8px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .95rem;
+  }
+  .phase.now .n { background: var(--volt); color: #171A21; border-color: var(--volt); }
+  .phase b { display: block; }
+  .phase .d { color: var(--text-2); font-size: .95rem; }
+
+  .decis { margin: 1.2rem 0; padding: 0; list-style: none; }
+  .decis li {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: .85rem 1.1rem; margin: .6rem 0; display: flex; gap: .8rem; align-items: baseline;
+  }
+  .decis li b { flex: none; }
+
+  dl.gloss { margin: 1.2rem 0; display: grid; grid-template-columns: max-content 1fr; gap: .35rem 1.1rem; font-size: .93rem; }
+  dl.gloss dt { font-weight: 700; }
+  dl.gloss dd { margin: 0; color: var(--text-2); }
+
+  footer.src { margin-top: 4rem; padding-top: 1.2rem; border-top: 1px solid var(--line); font-size: .82rem; color: var(--text-2); }
+  footer.src code { font-size: .78rem; }
+  a { color: var(--volt-deep); }
+  :focus-visible { outline: 2px solid var(--volt); outline-offset: 2px; }
+
+  html { scroll-behavior: smooth; }
+  h2[id] { scroll-margin-top: 1.75rem; }
+
+  .toc {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    z-index: 40;
+  }
+  .toc-list {
+    list-style: none;
+    margin: 0;
+    padding: .55rem .45rem;
+    display: flex;
+    flex-direction: column;
+    gap: .1rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: none;
+    border-radius: 0 14px 14px 0;
+    box-shadow: 0 10px 28px -10px rgba(0,0,0,.22);
+    max-height: 80vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .toc-list a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-2);
+    border-radius: 8px;
+    padding: .28rem .4rem;
+    white-space: nowrap;
+  }
+  .toc-mark {
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .66rem;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text-2);
+    transition: background .15s ease, color .15s ease;
+  }
+  .toc-label {
+    font-size: .8rem;
+    font-weight: 600;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width .25s ease, opacity .2s ease, margin-left .25s ease;
+    margin-left: 0;
+  }
+  .toc:hover .toc-label,
+  .toc.pinned .toc-label {
+    max-width: 22rem;
+    opacity: 1;
+    margin-left: .6rem;
+  }
+  .toc-list a:hover { background: var(--volt-wash); color: var(--volt-deep); }
+  .toc-list a:hover .toc-mark { background: var(--volt); color: #171A21; }
+  .toc-list a.active .toc-mark { background: var(--text); color: var(--ground); }
+  .toc-list a.active { color: var(--text); }
+
+  .toc-pin {
+    position: absolute;
+    top: -2.2rem;
+    left: .3rem;
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .2s ease, color .15s ease, border-color .15s ease;
+  }
+  .toc:hover .toc-pin, .toc.pinned .toc-pin { opacity: 1; }
+  .toc-pin[aria-pressed="true"] { color: var(--volt-deep); border-color: var(--volt); }
+  .toc-pin svg { fill: currentColor; }
+
+  @media (hover: none) {
+    .toc-pin { opacity: 1; }
+  }
+  @media (max-width: 640px) {
+    .toc-mark { width: 1.3rem; height: 1.3rem; font-size: .6rem; }
+  }
+</style>
+
+<nav class="toc" id="toc" aria-label="Kapitelübersicht">
+  <button class="toc-pin" id="tocPin" type="button" aria-pressed="false" title="Kapitelmenü anheften">
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 1l1.6 4.2L14 6l-3.4 2.8L11.6 13 8 10.4 4.4 13l1-4.2L2 6l4.4-.8z"></path></svg>
+  </button>
+  <ol class="toc-list">
+    <li><a href="#sec-0" data-toc="sec-0"><span class="toc-mark">0</span><span class="toc-label">Begriffe</span></a></li>
+    <li><a href="#sec-a" data-toc="sec-a"><span class="toc-mark">A</span><span class="toc-label">Die fünf Grundregeln</span></a></li>
+    <li><a href="#sec-b" data-toc="sec-b"><span class="toc-mark">B</span><span class="toc-label">Das Rollenmodell</span></a></li>
+    <li><a href="#sec-c" data-toc="sec-c"><span class="toc-mark">C</span><span class="toc-label">Der Vorschlags-Workflow</span></a></li>
+    <li><a href="#sec-d" data-toc="sec-d"><span class="toc-mark">D</span><span class="toc-label">Ansichten: gleiche Navigation, zugeschnittene Daten</span></a></li>
+    <li><a href="#sec-e" data-toc="sec-e"><span class="toc-mark">E</span><span class="toc-label">Das Assistentensystem: eine Chat-Fläche, dahinter je Nutzer ein Agent</span></a></li>
+    <li><a href="#sec-f" data-toc="sec-f"><span class="toc-mark">F</span><span class="toc-label">Agenten-Teams je Unternehmensbereich</span></a></li>
+    <li><a href="#sec-g" data-toc="sec-g"><span class="toc-mark">G</span><span class="toc-label">Bausteine: was liefert welche Schicht?</span></a></li>
+    <li><a href="#sec-h" data-toc="sec-h"><span class="toc-mark">H</span><span class="toc-label">Modelle, Zugänge und Kosten — pro Agent, nicht pauschal</span></a></li>
+    <li><a href="#sec-i" data-toc="sec-i"><span class="toc-mark">I</span><span class="toc-label">Einstellungen &amp; Verwaltung — das Backend der Führung</span></a></li>
+    <li><a href="#sec-j" data-toc="sec-j"><span class="toc-mark">J</span><span class="toc-label">Weg zum Zielbild</span></a></li>
+    <li><a href="#sec-k" data-toc="sec-k"><span class="toc-mark">K</span><span class="toc-label">Offene Entscheidungen (Inhaber)</span></a></li>
+  </ol>
+</nav>
+
+<div class="wrap">
+  <header class="col">
+    <p class="eyebrow">Whitelabel Agentic AIOS</p>
+    <h1>Architektur-Zielbild &amp; User Experience</h1>
+    <p class="lede">Wir bauen ein white-label „Agentic AI Operating System“ für Unternehmen: eine Plattform, in der KI-Agenten in Abteilungs-Teams arbeiten, Menschen sie über ein Board steuern, und jeder Mitarbeiter einen persönlichen KI-Assistenten hat. Technische Basis ist die Open-Source-Plattform <b>Paperclip</b> (Agenten-Orchestrierung + Projektmanagement), die wir als privaten Soft-Fork betreiben und um Eigenes erweitern. Dieses Dokument ist bewusst <b>selbsterklärend</b> geschrieben — es setzt keinen Gesprächskontext voraus und dient Menschen wie Agenten als Referenz. Es beschreibt ausschließlich die <b>Produktebene</b>: Firmen, ihre Produkte und ihre Teams kommen hier nur als „eine Firma“, „ein Produkt“, „ein Bereich“ vor — die konkrete Ausprägung einer einzelnen Instanz gehört in deren eigene Instanz-Dokumentation, nicht hierher.</p>
+    <div class="meta">
+      <span class="chip ref">v4 · 12.07.2026</span>
+      <span class="chip open">Grundlage zur Abnahme</span>
+      <span class="chip ok">Technische Aussagen im Quellcode verifiziert</span>
+    </div>
+  </header>
+
+  <section class="col">
+    <h2 id="sec-0"><span class="sec">0 ·</span> Begriffe</h2>
+    <p class="sub">Alle Fachbegriffe, die dieses Dokument verwendet — einmal sauber definiert.</p>
+    <dl class="gloss">
+      <dt>Paperclip</dt><dd>Die Open-Source-Basisplattform: Web-Oberfläche („Board“) mit Tasks, Projekten, Agenten, Budgets, Genehmigungen. Wird von uns nicht neu erfunden, sondern angepasst.</dd>
+      <dt>Instanz</dt><dd>Eine Installation der Plattform für genau eine Firma, mit eigener Datenbank, eigenem Branding, eigenen Nutzern.</dd>
+      <dt>Board</dt><dd>Die Web-Oberfläche der Instanz, in der Menschen arbeiten: Tasks, Projekte, Agenten, Auswertungen.</dd>
+      <dt>Soft-Fork / Patch-Serie</dt><dd>Wir betreiben eine private Kopie des Paperclip-Quellcodes und ändern nur wenige, klar registrierte Stellen („Patches“, Register in Abschnitt G). So bekommen wir weiter alle Updates des Originals.</dd>
+      <dt>Plugin</dt><dd>Paperclips offizieller Erweiterungsmechanismus. Plugins können Neues hinzufügen (Seiten, Datenmodelle, Automatiken), aber Bestehendes nicht verändern — dafür braucht es Patches.</dd>
+      <dt>Agent</dt><dd>Ein dauerhaft angelegter KI-Mitarbeiter in der Instanz: mit Name, Rolle, Arbeitsordner, Skill-Liste, Rechten, Monatsbudget und eigener Task-Historie.</dd>
+      <dt>Adapter</dt><dd>Die Technik, mit der ein Agent „denkt“: welche KI (Claude, Gemini, lokales Modell …) mit welchen Einstellungen für ihn gestartet wird. Pro Agent konfigurierbar.</dd>
+      <dt>Skill</dt><dd>Eine Fähigkeits-Anleitung (Textdatei), die einem Agenten beigelegt wird — z. B. „wie bediene ich das Board“. Skills sind wiederverwendbar; welcher Agent welche bekommt, ist pro Agent einstellbar.</dd>
+      <dt>Task / Ask-Modus</dt><dd>Task = Arbeitsauftrag im Board mit Status und Verlauf. Der Ask-Modus ist eine Task-Art für Fragen/Konversation: der zugewiesene Agent antwortet im Task-Verlauf, statt Code oder Dokumente zu produzieren.</dd>
+      <dt>Secret</dt><dd>Ein sicher hinterlegter Zugang (API-Schlüssel, Abo-Token). <b>Company-Secrets</b> gehören der Firma (z. B. Zugang zu einem Video-Dienst), <b>User-Secrets</b> gehören einem einzelnen Nutzer (z. B. sein eigenes Claude-Abo). Beide können gezielt einzelnen Agenten zugänglich gemacht werden.</dd>
+      <dt>Environment</dt><dd>Ein benanntes Bündel von Einstellungen und Zugängen, das man mehreren Agenten gemeinsam zuweisen kann (z. B. „Marketing-Umgebung“ mit den Marketing-Tool-Zugängen).</dd>
+      <dt>Teams-Katalog</dt><dd>Paperclips Vorlagen-Mechanismus: ein komplettes Agenten-Team (Agenten + Skills + Konfiguration) als installierbares Paket.</dd>
+      <dt>Laufzeitumgebung (ECC)</dt><dd>Die Umgebung auf dem Server, in der Agenten tatsächlich ausgeführt werden — inklusive Arbeitsordner, Regeln und Datei-Gedächtnis je Agent. Liegt außerhalb des Boards.</dd>
+      <dt>Brain</dt><dd>Das geplante geteilte Firmen-Wissen: ein Verzeichnis aus Markdown-Textdateien (Baumstruktur), deren Verweise (<code>[[Links]]</code>) und Schlagworte ein Netz bilden; im Board als Graph mit Knoten und Kanten visualisiert.</dd>
+      <dt>Cockpit</dt><dd>Die Chat-Seite im Board („Conference Room“), heute das Steuer-Instrument der Führung. Zielbild: dieselbe Seite wird der Assistenz-Chat für alle Rollen (Abschnitt E).</dd>
+    </dl>
+  </section>
+
+  <section class="col">
+    <h2 id="sec-a"><span class="sec">A ·</span> Die fünf Grundregeln</h2>
+    <p class="sub">Die Architektur folgt fünf Prinzipien. Alles Weitere im Dokument ist deren Ausarbeitung.</p>
+
+    <div class="rule">
+      <strong>1 · Eine Instanz je Firma. Alles liegt firmenweit — Rollen steuern das Dürfen.</strong>
+      Agenten, Skills, Projekte und Tasks gehören der Firma, nicht einzelnen Nutzern (im Datenmodell verifiziert: ein Agent hat keinen Besitzer-Nutzer). Was ein eingeloggter Mensch <em>tun darf</em>, bestimmt sein Rollenprofil — ausgearbeitet in Abschnitt B.
+    </div>
+    <div class="rule">
+      <strong>2 · Gleiche Ansichten für alle — der Zugang bestimmt die Daten, nicht die Navigation.</strong>
+      Keine Rolle bekommt ein „kastriertes“ Menü. <b>Stufe 1 (Grundlage):</b> Alle sehen dieselben Ansichten; die Inhalte darin sind auf Team und Zugang zugeschnitten — ein Vertriebsmitarbeiter sieht unter „Agents“ die Vertriebs-Agenten, unter „Tasks“ die Vertriebs-Tasks. <b>Stufe 2 (Feinsteuerung):</b> Die Führung kann zusätzlich pro Team einstellen, welche Ansichten eingeblendet sind — als pflegbare Schalter-Matrix, nicht als festes Produktgesetz. Das vollständige Ansichten-Mapping steht in Abschnitt D.
+    </div>
+    <div class="rule">
+      <strong>3 · Jeder Unternehmensbereich hat sein eigenes Agenten-Team.</strong>
+      Es gibt keinen firmenweiten „Grafik-Agenten“ oder „Text-Agenten“. Jeder Bereich (Vertrieb, Development, Marketing, Design …) bekommt sein eigenes Team aus Agenten, und auch innerhalb eines Bereichs wird nach Aufgabenfeldern geschnitten — das Design-Team hat z. B. getrennte Agenten für Vertriebsmaterial und für Kampagnen-Assets, jeweils mit eigenem Budget, eigenem Kontext und eigener Historie. Das wiederverwendbare Team-Muster steht in Abschnitt F.
+    </div>
+    <div class="rule">
+      <strong>4 · Jeder Agent hat eine ausdrückliche Modell-, API- und Kosten-Bindung.</strong>
+      Für jeden Agenten ist hinterlegt: welche KI er nutzt, wie abgerechnet wird (Firmen-Abo, Firmen-API, User-eigenes Abo oder lokales, kostenfreies Modell) und welche Werkzeug-Zugänge er bekommt. Nichts läuft stillschweigend „über das eine Abo“. Nutzer können eigene Zugänge mitbringen; die Führung pflegt die Firmen-Zugänge zentral. Ausgearbeitet in Abschnitt H — die komplette Mechanik dafür bringt Paperclip nativ mit.
+    </div>
+    <div class="rule">
+      <strong>5 · Der Fork ändert die Hülle, das Plugin baut nur, was es nicht gibt.</strong>
+      Patches verändern die bestehende Oberfläche (Branding, Daten-Zuschnitt, Cockpit) und gelten automatisch für jeden Login. Das Plugin ergänzt ausschließlich, was Paperclip nicht kennt: die Team-Entität, die Sichtbarkeits-Matrix, den Vorschlags-Workflow, die Assistenten-Provisionierung, später das Brain. <b>Es baut keine Parallel-Ansichten zu Bestehendem</b> — ein „Team-Dashboard“ ist das native Dashboard mit Team-Zuschnitt, keine neue Seite. Bausteine-Übersicht in Abschnitt G. <b>Rangfolge bei Konflikten (Vorgabe des Inhabers, 12.07.2026):</b> Zuerst wird geprüft, was Paperclip nativ kann; danach wird minimal gepatcht; der Rest läuft über das Plugin — <em>aber die eigenen Anforderungen haben immer Priorität eins</em>. Erzwingt eine native Grenze einen Abstrich an einer Anforderung, wird dieser Abstrich nicht stillschweigend gemacht, sondern ausdrücklich an den Inhaber berichtet und von ihm entschieden.
+    </div>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2 id="sec-b"><span class="sec">B ·</span> Das Rollenmodell</h2>
+      <p class="sub">Fünf Rollen. Die Tabelle zeigt, was jede Rolle kann; darunter steht, wie das technisch abgebildet wird und was davon die Plattform hart erzwingt.</p>
+      <ul>
+        <li><b>Owner</b> — Inhaber der Instanz. Einziger, der die Instanz selbst verwaltet: Deployment, Patches, Plugins, den zentralen Zugänge-Speicher.</li>
+        <li><b>Admin</b> — Geschäftsführungs-Ebene. Volle Sicht und volle Steuerung des Betriebs — Mitglieder, Teams, Agenten, Budgets, Genehmigungen — aber kein Zugriff auf das technische Instanz-Setup.</li>
+        <li><b>Mitarbeiter</b> — arbeitet in genau einem Unternehmensbereich (Team). Voller Arbeitszugriff innerhalb seines Teams.</li>
+        <li><b>Experte / Contributor</b> — externes oder internes Bewertungs-Gremium. Liest zugewiesene Projekte, kommentiert dort und reicht Vorschläge ein, die als abzunehmende Tasks ins jeweilige Team wandern (Abschnitt C). Kein direkter Arbeitszugriff.</li>
+        <li><b>Viewer</b> — reine Einblick-Rolle (z. B. Investoren, Externe): sieht freigegebene Auswertungen, kann nichts schreiben — auch nicht kommentieren.</li>
+      </ul>
+    </div>
+    <div class="tblwrap"><table>
+      <tr><th>Fähigkeit</th><th class="c">Owner</th><th class="c">Admin</th><th class="c">Mitarbeiter</th><th class="c">Experte</th><th class="c">Viewer</th></tr>
+      <tr><td>Instanz-Setup: Deployment, Patches, Plugins, Zugänge-Speicher</td><td class="c"><span class="mark full">ja</span></td><td class="c"><span class="mark no">nein</span></td><td class="c"><span class="mark no">nein</span></td><td class="c"><span class="mark no">nein</span></td><td class="c"><span class="mark no">nein</span></td></tr>
+      <tr><td>Mitglieder einladen, Rollen und Teams zuordnen</td><td class="c"><span class="mark full">ja</span></td><td class="c"><span class="mark full">ja</span></td><td class="c"><span class="mark no">nein</span></td><td class="c"><span class="mark no">nein</span></td><td class="c"><span class="mark no">nein</span></td></tr>
+      <tr><td>Agenten anheuern/pausieren, Budgets setzen, Genehmigungen erteilen, Modell-Bindung pflegen</td><td class="c"><span class="mark full">ja</span></td><td class="c"><span class="mark full">ja</span></td><td class="c"><span class="mark no">nein</span></td><td class="c"><span class="mark no">nein</span></td><td class="c"><span class="mark no">nein</span></td></tr>
+      <tr><td>Sichtbarkeits-Matrix pflegen (welche Ansichten je Team, Stufe 2)</td><td class="c"><span class="mark full">ja</span></td><td class="c"><span class="mark full">ja</span></td><td class="c"><span class="mark no">nein</span></td><td class="c"><span class="mark no">nein</span></td><td class="c"><span class="mark no">nein</span></td></tr>
+      <tr><td>Tasks anlegen und bearbeiten, Agenten beauftragen</td><td class="c"><span class="mark full">überall</span></td><td class="c"><span class="mark full">überall</span></td><td class="c"><span class="mark team">im eigenen Team</span></td><td class="c"><span class="mark no">nein — nur via Vorschlag</span></td><td class="c"><span class="mark no">nein</span></td></tr>
+      <tr><td>Kommentieren und Reviews abgeben</td><td class="c"><span class="mark full">überall</span></td><td class="c"><span class="mark full">überall</span></td><td class="c"><span class="mark team">im eigenen Team</span></td><td class="c"><span class="mark assign">in zugewiesenen Projekten</span></td><td class="c"><span class="mark no">nein</span></td></tr>
+      <tr><td>Vorschläge einreichen (werden abzunehmende Tasks, Abschnitt C)</td><td class="c"><span class="mark full">ja</span></td><td class="c"><span class="mark full">ja</span></td><td class="c"><span class="mark full">ja</span></td><td class="c"><span class="mark full">ja — Kern der Rolle</span></td><td class="c"><span class="mark no">nein</span></td></tr>
+      <tr><td>Persönlicher Assistent im Cockpit-Chat (Abschnitt E)</td><td class="c"><span class="mark full">mit Board-Vollmacht</span></td><td class="c"><span class="mark full">mit Board-Vollmacht</span></td><td class="c"><span class="mark team">mit Team-Zuschnitt</span></td><td class="c"><span class="mark assign">im Vorschlags-Zuschnitt</span></td><td class="c"><span class="mark no">nein</span></td></tr>
+      <tr><td>Lesen: Dashboards, Verläufe, Auswertungen</td><td class="c"><span class="mark full">alles</span></td><td class="c"><span class="mark full">alles</span></td><td class="c"><span class="mark team">Team-Daten</span></td><td class="c"><span class="mark assign">zugewiesene Projekte</span></td><td class="c"><span class="mark ro">freigegebene, nur lesen</span></td></tr>
+    </table></div>
+    <div class="col">
+      <div class="honest"><strong>Technische Abbildung &amp; was die Plattform hart erzwingt:</strong> Paperclip kennt nativ die Rollen <code>owner</code>, <code>admin</code>, <code>operator</code> (= Ausführender) und <code>viewer</code>. Unsere Zuordnung: Owner → <code>owner</code> · Admin → <code>admin</code> · Mitarbeiter → <code>operator</code> mit Team-Zuordnung · Experte → <code>operator</code> mit sehr engem Zuschnitt · Viewer → <code>viewer</code>. Hart erzwungen sind serverseitig zwei Dinge: <code>viewer</code> kann grundsätzlich nichts schreiben — <b>auch keine Kommentare</b> (deshalb ist der Experte technisch KEIN viewer) — und der Owner kann nicht entfernt oder herabgestuft werden. Alles andere (Owner-exklusives Instanz-Setup, „Mitarbeiter nur im eigenen Team“) ist Produkt-Policy: Paperclip lässt admin/operator firmenweit schreiben; die Team-Grenze setzen wir über Team-Zuordnung, Daten-Zuschnitt der Ansichten und — wo nötig — erzwungenes Scoping im Fork durch. Ehrlich gesagt: erst Fokus, hartes Erzwingen als eigener Ausbauschritt.</div>
+    </div>
+  </section>
+
+  <section class="col">
+    <h2 id="sec-c"><span class="sec">C ·</span> Der Vorschlags-Workflow</h2>
+    <p class="sub">„Bewerten“ heißt bei uns nicht nur kommentieren. Ein Experte (und jede andere schreibberechtigte Rolle) kann Vorschläge einreichen, die zu echten, abzunehmenden Tasks werden. Die Schreibarbeit übernimmt sein Assistenz-Agent — so bleibt der Mensch eng berechtigt und jeder Schritt ist im Board nachvollziehbar.</p>
+    <ol class="journey">
+      <li><b>Der Experte formuliert seinen Vorschlag im Assistenz-Chat</b><span class="d">Frei in normaler Sprache: „Ich würde am Angebotsprozess X ändern, weil …“. Kein Formular, keine Task-Maske.</span></li>
+      <li><b>Sein Assistent strukturiert den Vorschlag und legt eine Task an</b><span class="d">Mit Titel, Begründung und Ziel-Team; Status „Vorschlag“ im Backlog des betroffenen Teams, sichtbar markiert mit Herkunft (welcher Experte, welches Gespräch). Wichtig: Der <em>Agent</em> schreibt die Task — nicht der Mensch. Agenten haben native Schreibrechte; der Mensch braucht dafür keine.</span></li>
+      <li><b>Der Team-Lead entscheidet über die Abnahme</b><span class="d">Über die native Genehmigungs-/Review-Mechanik: annehmen (der Vorschlag wird eine normale Team-Task und wird eingeplant), ablehnen (mit Begründung zurück an den Experten) oder Rückfragen direkt im Task-Verlauf stellen.</span></li>
+      <li><b>Der Experte verfolgt den Verlauf</b><span class="d">In seinen zugewiesenen Projekten sieht er den Status seines Vorschlags, alle Kommentare und das Ergebnis — und kann im Task-Verlauf mitdiskutieren.</span></li>
+    </ol>
+    <div class="honest"><strong>Warum dieser Umweg über den Agenten:</strong> Die Plattform erlaubt der reinen Lese-Rolle nicht einmal Kommentare. Statt dem Experten deshalb breite Schreibrechte zu geben, bekommt er einen schmalen, vollständig protokollierten Kanal: eigene Kommentare nur in zugewiesenen Projekten, Task-Erzeugung ausschließlich über seinen Assistenten, und nichts wird Arbeit, bevor das betroffene Team es abgenommen hat.</span></div>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2 id="sec-d"><span class="sec">D ·</span> Ansichten: gleiche Navigation, zugeschnittene Daten</h2>
+      <p class="sub">Das Board hat einen festen Satz an Ansichten (Dashboard, Tasks, Projects, Agents, …). Niemand bekommt andere Ansichten — der Unterschied liegt in den <b>Daten</b>, die eine Rolle darin sieht. Weil das zwei getrennte Fragen sind, gibt es hier zwei getrennte Tabellen: <b>Tabelle 1</b> beantwortet nur „Ist die Ansicht für diese Rolle eingeblendet — ja oder nein?“ (das sind die Stufe-2-Schalter). <b>Tabelle 2</b> beantwortet nur „Und wenn eingeblendet: welche Daten stehen drin?“ (das ist der Stufe-1-Daten-Zuschnitt). In Tabelle 1 tragen die Farben Bedeutung; Tabelle 2 ist bewusst reiner Text ohne Farben.</p>
+      <h3>Tabelle 1 — Sichtbarkeit: Ist die Ansicht eingeblendet? (Stufe 2) <span class="chip ok">Vorbelegung vom Inhaber übernommen, 12.07.2026</span></h3>
+      <p class="sub">Werte sind die Standard-Vorgabe. Die Führung kann jede Zelle später pro Team umstellen (Sichtbarkeits-Matrix, Abschnitt I). Für die Führung selbst ist immer alles eingeblendet — deshalb hat sie hier keine eigene Spalte.</p>
+    </div>
+    <div class="tblwrap"><table>
+      <tr><th>Ansicht</th><th class="c">Mitarbeiter</th><th class="c">Experte</th><th class="c">Viewer</th></tr>
+      <tr><td>Dashboard <em>(Startseite nach Login)</em></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td></tr>
+      <tr><td>Inbox <em>(persönliche Benachrichtigungen)</em></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark no">ausgeblendet</span></td></tr>
+      <tr><td>Assistenz-Chat <em>(Cockpit-Seite, Abschnitt E)</em></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark no">ausgeblendet</span></td></tr>
+      <tr><td>Tasks</td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td></tr>
+      <tr><td>Projects</td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td></tr>
+      <tr><td>Agents <em>(„Mein Team“)</em></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark no">ausgeblendet</span></td></tr>
+      <tr><td>Routines · Goals · Artifacts · Skills</td><td class="c"><span class="mark cfg">je Team wählbar · Standard: an</span></td><td class="c"><span class="mark cfg">je Team wählbar · Standard: an</span></td><td class="c"><span class="mark full">eingeblendet</span></td></tr>
+      <tr><td>Timeline · Activity <em>(Verlauf/Aktivität)</em></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td></tr>
+      <tr><td>Org <em>(Organigramm der Agenten)</em></td><td class="c"><span class="mark cfg">je Team wählbar · Standard: an</span></td><td class="c"><span class="mark no">ausgeblendet</span></td><td class="c"><span class="mark no">ausgeblendet</span></td></tr>
+      <tr><td>Costs <em>(Kosten)</em></td><td class="c"><span class="mark cfg">je Team wählbar · Standard: an (Entscheid 12.07.2026: Leads sehen ihr Team-Budget)</span></td><td class="c"><span class="mark no">ausgeblendet</span></td><td class="c"><span class="mark no">ausgeblendet</span></td></tr>
+      <tr><td>Approvals <em>(Genehmigungen)</em></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark no">ausgeblendet</span></td></tr>
+      <tr><td>Settings <em>(Einstellungen)</em></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td><td class="c"><span class="mark full">eingeblendet</span></td></tr>
+    </table></div>
+    <div class="col">
+      <div class="legend">
+        Farben in Tabelle 1: <span class="mark full">eingeblendet</span> die Ansicht erscheint in der Navigation ·
+        <span class="mark no">ausgeblendet</span> die Ansicht erscheint nicht (Führung kann sie je Team einschalten) ·
+        <span class="mark cfg">je Team wählbar</span> die Führung entscheidet pro Team; der genannte Standard gilt, bis sie es ändert
+      </div>
+      <h3>Tabelle 2 — Daten-Zuschnitt: Was steht in der Ansicht? (Stufe 1)</h3>
+      <p class="sub">Gilt nur, wo die Ansicht laut Tabelle 1 eingeblendet ist. „—“ heißt: für diese Rolle standardmäßig ausgeblendet, siehe Tabelle 1. Reiner Text, keine Farben — hier geht es um Inhalte, nicht um Schalter.</p>
+    </div>
+    <div class="tblwrap"><table>
+      <tr><th>Ansicht</th><th>Führung (Owner/Admin)</th><th>Mitarbeiter</th><th>Experte</th><th>Viewer</th></tr>
+      <tr><td>Dashboard</td><td>alle Firmendaten</td><td>Daten des eigenen Teams</td><td>nur zugewiesene Projekte</td><td>nur freigegebene Inhalte, nur lesen</td></tr>
+      <tr><td>Inbox</td><td>eigene Benachrichtigungen</td><td>eigene Benachrichtigungen</td><td>eigene Benachrichtigungen</td><td>—</td></tr>
+      <tr><td>Assistenz-Chat</td><td>eigener Assistent mit Board-Vollmacht</td><td>eigener Assistent mit Team-Zuschnitt</td><td>eigener Assistent im Vorschlags-Zuschnitt</td><td>—</td></tr>
+      <tr><td>Tasks</td><td>alle Tasks</td><td>Tasks des eigenen Teams</td><td>zugewiesene Projekte plus eigene Vorschläge</td><td>freigegebene Tasks, nur lesen</td></tr>
+      <tr><td>Projects</td><td>alle Projekte</td><td>Projekte des eigenen Teams</td><td>nur zugewiesene Projekte</td><td>freigegebene Projekte, nur lesen</td></tr>
+      <tr><td>Agents</td><td>alle Agenten</td><td>Agenten des eigenen Teams</td><td>nur der eigene Assistent</td><td>—</td></tr>
+      <tr><td>Routines · Goals · Artifacts · Skills</td><td>alles</td><td>Einträge mit Team-Bezug</td><td>zugewiesene, nur lesen</td><td>freigegebene, nur lesen</td></tr>
+      <tr><td>Timeline · Activity</td><td>gesamte Aktivität</td><td>Aktivität des eigenen Teams</td><td>Aktivität der zugewiesenen Projekte</td><td>freigegebene, nur lesen</td></tr>
+      <tr><td>Org</td><td>gesamtes Organigramm</td><td>der eigene Team-Ast</td><td>—</td><td>—</td></tr>
+      <tr><td>Costs</td><td>Verbrauch aller Agenten</td><td>nur der Verbrauch des eigenen Teams</td><td>—</td><td>—</td></tr>
+      <tr><td>Approvals</td><td>alle Genehmigungen</td><td>Abnahmen des eigenen Teams (vor allem für Leads)</td><td>Status der eigenen Vorschläge</td><td>—</td></tr>
+      <tr><td>Settings</td><td>alle Einstellungen inkl. AIOS-Reiter</td><td>nur eigenes Profil</td><td>nur eigenes Profil</td><td>nur eigenes Profil</td></tr>
+    </table></div>
+    <div class="col">
+      <p><b>Es gibt bewusst keine eigene „Team-Home“-Seite.</b> Die Startseite eines Mitarbeiters ist das normale Dashboard mit den Daten seines Teams — dieselbe Ansicht, die auch die Führung nutzt, nur mit anderem Zuschnitt. Eine zusätzliche Team-Seite würde nur duplizieren, was das Dashboard schon kann, und widerspräche Grundregel 2.</p>
+      <div class="honest"><strong>Umsetzungs-Ehrlichkeit:</strong> Von Haus aus zeigen Paperclips Ansichten jedem Firmenmitglied alle Firmendaten — eine erzwungene Projekt-Zugriffskontrolle gibt es nativ nicht. Der Daten-Zuschnitt entsteht darum in drei Ausbaustufen: <b>(1a)</b> weicher Zuschnitt — die Ansichten sind standardmäßig auf die „beigetretenen“ Projekte/Agenten des Nutzers gefiltert (nativer Mechanismus, schnell umgesetzt, aber umgehbar); <b>(2)</b> die Sichtbarkeits-Matrix als Einstellungs-Seite (Team × Ansicht, von der Führung gepflegt); <b>(1b)</b> erzwungener Zuschnitt im Fork — der Server filtert die Daten hart nach Team (echte Grenze, mehr Aufwand). Reihenfolge im Ausbau: 1a → 2 → 1b, letzteres dort, wo es wirklich gebraucht wird.</div>
+
+      <h3>So erlebt es ein Mitarbeiter</h3>
+      <ol class="journey">
+        <li><b>Die Führung lädt ihn ein</b><span class="d">E-Mail-Adresse, Rolle, Team. Das Onboarding erledigt den Rest automatisch: seine Projekte und Team-Agenten werden ihm zugeordnet, sein persönlicher Assistent wird angelegt.</span></li>
+        <li><b>Er öffnet den Einladungslink und setzt ein Passwort</b><span class="d">Das ist seine gesamte Einrichtung. Es gibt nichts zu installieren — Agenten, Modelle und Laufzeitumgebung laufen komplett serverseitig.</span></li>
+        <li><b>Login → Dashboard mit seinen Team-Daten</b><span class="d">Gleiche Navigation wie alle anderen; in jeder Ansicht die Daten seines Bereichs. Firmen-Branding automatisch.</span></li>
+        <li><b>Arbeiten</b><span class="d">Tasks an die Team-Agenten geben, Ergebnisse prüfen, im Assistenz-Chat Fragen stellen — sein Assistent kennt sein Team und den gemeinsamen Verlauf dauerhaft.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="col">
+    <h2 id="sec-e"><span class="sec">E ·</span> Das Assistentensystem: eine Chat-Fläche, dahinter je Nutzer ein Agent</h2>
+    <p class="sub">Jeder Nutzer (außer Viewer) hat einen persönlichen Assistenz-Agenten und spricht mit ihm über <b>dieselbe Chat-Seite</b> — das Cockpit, das heute schon live ist. Es gibt keine zweite Chat-Oberfläche. Was sich je Rolle unterscheidet, ist ausschließlich der Agent dahinter: seine Rechte, seine Skills, sein Wissen.</p>
+
+    <h3>Warum ein Agent dahinter stehen muss — und kein einfacher KI-Aufruf</h3>
+    <p>Das heutige Cockpit (Übergangslösung) startet bei jeder Nachricht einen frischen KI-Aufruf und gibt ihm den bisherigen Gesprächsverlauf als Text mit. Das funktioniert, hat aber drei geprüfte Grenzen: <b>kein echtes Gedächtnis</b> (nur der mitgeschickte Verlaufstext; kein Arbeitsordner, keine Notizen, kein Datei-Gedächtnis), <b>keine steuerbaren Rechte</b> (jeder Aufruf hätte dieselbe volle Board-Vollmacht — für Mitarbeiter unbrauchbar) und <b>keine Kostensteuerung</b> (läuft pauschal über das Abo des Betreibers, ohne Budget und Zuordnung).</p>
+    <p>Ein Assistenz-<b>Agent</b> löst alle drei Punkte, weil er ein vollwertiger Plattform-Bewohner ist:</p>
+    <div class="tblwrap"><table>
+      <tr><th>Eigenschaft</th><th>Heutiges Cockpit (Übergang)</th><th>Zielbild: Assistenz-Agent je Nutzer</th></tr>
+      <tr><td>Gedächtnis</td><td>Nur der mitgeschickte Gesprächsverlauf</td><td>Vier Schichten: laufende Sitzung wird fortgesetzt · Task-Historie im Board · eigener Arbeitsordner mit Datei-Gedächtnis und Verhaltensprofil je Nutzer · das geteilte Brain (Markdown-Wissensnetz mit Graph-Ansicht)</td></tr>
+      <tr><td>Rechte &amp; Fähigkeiten</td><td>Eine feste Vollmacht für alle</td><td>Pro Agent: Skill-Liste, Rechte-Profil, Verhaltensregeln — der Assistent der Führung darf das ganze Board bedienen, der eines Mitarbeiters nur sein Team, der eines Experten nur Vorschläge erzeugen</td></tr>
+      <tr><td>Kosten</td><td>Pauschal über das Betreiber-Abo, ohne Zuordnung</td><td>Token-Verbrauchs-Tracking je Agent; Zugangs-Quelle pro Assistent wählbar — eigenes Abo, eigener Schlüssel, Firmen-Zugang oder lokales Modell (Abschnitt H); ohne Zwangs-Kostendeckel</td></tr>
+      <tr><td>Nachvollziehbarkeit</td><td>Unsichtbar für die Governance</td><td>Jede Aktion läuft als benannter Agent: Aktivitätsprotokoll, Genehmigungen, Organigramm — alles greift</td></tr>
+    </table></div>
+
+    <h3>Lebt der Assistenz-Agent im Task- und Projektsystem? Ja — zwangsläufig und absichtlich.</h3>
+    <p>Weil der Assistent ein nativer Paperclip-Agent ist, findet sein gesamtes Wirken <b>innerhalb</b> des Task-Systems statt — es gibt keinen Kanal daran vorbei (im Quellcode geprüft):</p>
+    <ul>
+      <li><b>Jede Konversation ist eine Task, jede Nachricht ein Task-Kommentar.</b> Sogar die heutige Cockpit-Seite arbeitet schon so: Sie verankert ihre Gespräche in einer Dauer-Task („Board Operations“ — wird bei Bedarf automatisch angelegt), schreibt jede Nutzer-Nachricht als Kommentar hinein und liest den Verlauf aus den Kommentaren zurück. Die Chat-Optik ist nur eine Linse auf einen Task-Verlauf.</li>
+      <li><b>Der Agent wird über den nativen Weck-Mechanismus aktiv:</b> Neuer Kommentar auf seiner Task → die Plattform weckt ihn mit genau diesem Kommentar als Kontext → seine Antwort landet als Kommentar im selben Verlauf. Er kann dabei Status setzen, Tasks anlegen (Vorschlags-Workflow) und alles tun, was seine Rechte erlauben.</li>
+      <li><b>Volle Governance inklusive:</b> Budget, Verbrauchs-Tracking, Aktivitätsprotokoll, Organigramm, Genehmigungspflichten — alles greift automatisch, weil er ein normaler Plattform-Bewohner ist.</li>
+      <li><b>Assistenz-Gespräche leben in einem eigenen Projekt „Assistenz“</b> <span class="chip ok">entschieden, 12.07.2026</span> — darin je Nutzer eine Dauer-Task pro Gespräch (dasselbe Muster, das das Cockpit heute für die Führung nutzt; technisch möglich wäre auch projektlos, das Projekt schafft aber Ordnung und ist der Ansatzpunkt, um Assistenz-Gespräche über den Daten-Zuschnitt aus fremden Ansichten herauszuhalten).</li>
+      <li><b>Konsequenz aus der Nativität:</b> Der Assistent <em>könnte</em> auch normale Arbeits-Tasks zugewiesen bekommen wie jeder Agent. Produkt-Policy: Assistenten nehmen nur Konversations-Tasks an und erzeugen Vorschlags-Tasks — durchgesetzt über ihre Skill-Liste und ihr Rechte-Profil, damit sie nicht versehentlich zu Fach-Agenten zweckentfremdet werden.</li>
+    </ul>
+
+    <h3>Der Umbau („Cockpit frisieren“, Patch P6) — was bewiesen ist und was noch nicht <span class="chip ok">Zielweg entschieden, 12.07.2026</span></h3>
+    <p><b>Einzeln bewiesen sind beide Hälften</b> (Live-Tests am 12.07.2026): <b>(a)</b> Die Cockpit-Oberfläche funktioniert Ende-zu-Ende und verankert ihre Threads bereits in einer Task — heute allerdings mit dem falschen Motor (frischer KI-Aufruf mit Board-Vollmacht pro Nachricht, der mit ausgerollt für jeden Nutzer inakzeptabel wäre). <b>(b)</b> Die Konversation mit einem Agenten über Task-Kommentare funktioniert — über zwei Runden, mit echten Board-Daten und Bezug auf die Vorrunde.</p>
+    <p><b>Noch nicht gebaut und nicht bewiesen ist die Verbindung:</b> der Motor-Tausch in der Cockpit-Route — statt „Kommentar speichern → KI-Prozess starten“ künftig „Kommentar speichern → den Assistenz-Agenten des eingeloggten Nutzers auf dieser Task wecken → seine Antwort in die Oberfläche streamen“. Die Task-Verankerung der Oberfläche bleibt dabei unverändert; getauscht wird nur, <em>wer</em> antwortet. Restrisiken, die der Bau klären muss: Antwort-Streaming aus dem Agenten-Lauf in die Chat-Oberfläche und die Antwortlatenz eines Agenten-Wecks gegenüber dem heutigen Direktaufruf.</p>
+    <div class="honest"><strong>Ehrlich benannt — zwei Punkte:</strong> <b>(1)</b> Der Assistent begrenzt über Rechte-Profil, Skill-Liste und Daten-Zuschnitt — wirksamer Fokus, aber keine kryptografische Abschottung pro Nutzer. <b>(2)</b> Weil Assistenz-Gespräche Task-Verläufe sind, sind sie — wie alle Tasks — zunächst firmenweit lesbar; die heutige Führungs-Task „Board Operations“ ist es auch. Wer Assistenz-Gespräche vertraulich will, braucht den weichen Zuschnitt (Ausbaustufe 1a blendet den Assistenz-Bereich aus fremden Ansichten aus) und für echte Vertraulichkeit den erzwungenen Zuschnitt (1b). Das ist eine bewusste Eigenschaft der Nativität, kein Versehen — und muss so kommuniziert werden.</div>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2 id="sec-f"><span class="sec">F ·</span> Agenten-Teams je Unternehmensbereich</h2>
+      <p class="sub">Das wiederverwendbare Muster für jede Firma — darunter die Vorlagen-Bibliothek des Produkts und ein Aktivierungs-Muster ohne Firmennamen.</p>
+      <h3>Das Team-Muster</h3>
+      <p>Jeder Unternehmensbereich bekommt ein Agenten-Team nach demselben Bauplan. Die Namenskonvention ist <code>bereich/aufgabenfeld</code>, damit Zugehörigkeit und Zweck jedes Agenten auf einen Blick lesbar sind:</p>
+    </div>
+    <div class="tblwrap"><table>
+      <tr><th>Rolle im Team</th><th>Aufgabe</th><th>Konfiguration</th></tr>
+      <tr><td><span class="m">bereich/lead</span> — der Koordinator</td><td>Nimmt Aufträge an, zerlegt sie, verteilt an die Fach-Agenten, prüft Ergebnisse und nimmt Team-Tasks sowie Experten-Vorschläge ab</td><td>Wurzel der Team-Hierarchie im Organigramm · breitere Skill-Liste · stärkeres Modell · mittleres Budget</td></tr>
+      <tr><td><span class="m">bereich/aufgabenfeld</span> — 2 bis 4 Fach-Agenten</td><td>Je ein klar geschnittenes Aufgabenfeld mit eigenem Kontext, eigenem Postfach, eigener Historie</td><td>Berichtet an den Lead · enge Skill-Liste · eigenes Budget · Modell nach Aufgabe; Routine-Massenarbeit auf lokalen, kostenfreien Modellen</td></tr>
+      <tr><td><span class="m">bereich/review</span> — optionaler Prüfer</td><td>Qualitätskontrolle vor der Lead-Abnahme, wo Fehler teuer sind (z. B. Development)</td><td>Lese-lastige Skills · kleines Budget</td></tr>
+    </table></div>
+    <div class="col">
+      <p><b>Arbeitsfluss im Team:</b> Auftrag (von einem Menschen oder aus dem Vorschlags-Workflow) → Team-Backlog → der Lead zerlegt und weist zu → Fach-Agent arbeitet → Prüfung → Lead nimmt ab → erledigt. Menschen greifen an genau zwei Punkten ein: beim Beauftragen und beim Abnehmen.</p>
+      <p><b>Ausrollen neuer Teams:</b> Je Bereichstyp existiert eine Vorlage im Teams-Katalog (komplettes Team inklusive Skills, Rechten und Budgets als ein Paket). Ein neues Team ist damit ein Import plus Feinjustage — kein Handaufbau. Das Organigramm entsteht automatisch aus den Berichtslinien.</p>
+
+      <h3>Die Team-Vorlagen-Bibliothek (Produktebene, white-label)</h3>
+      <p>Ein white-label Agentic AIOS muss jede Art von Unternehmen tragen können — nicht nur vier Abteilungen. Deshalb liefert das <b>Produkt</b> eine Bibliothek fertiger Team-Vorlagen für die üblichen Unternehmensfunktionen (technisch: je eine Vorlage im Teams-Katalog, siehe oben). Eine <b>Instanz</b> aktiviert daraus nur, was die Firma tatsächlich braucht, und ergänzt eigene, branchenspezifische Vorlagen. So entsteht Breite ohne Wildwuchs: Die Abdeckung liegt in der Bibliothek, die Disziplin in der Aktivierung.</p>
+      <div class="honest"><strong>Status — was existiert, was gebaut wird (im Quellcode geprüft):</strong> Paperclip liefert von Haus aus nur <b>vier</b> Katalog-Vorlagen mit: <span class="m">company-defaults</span>, <span class="m">product</span>, <span class="m">software-development</span> und optional <span class="m">content</span> (Verzeichnis <span class="m">packages/teams-catalog/catalog/</span>). Die folgende Tabelle ist also die <b>Ziel-Bibliothek unseres Produkts</b> — zehn Vorlagen, die <em>wir</em> als Katalog-Pakete erstellen (wo möglich auf den vier nativen aufbauend). Keine dieser zehn Vorlagen und keiner dieser Agenten existiert heute fertig; es sind zu bauende Blaupausen.</div>
+    </div>
+    <div class="tblwrap"><table>
+      <tr><th>Bereichs-Vorlage</th><th>Zweck</th><th>Standard-Aufgabenfelder (jeweils zusätzlich zum Lead)</th></tr>
+      <tr><td>Vertrieb</td><td>Kundengewinnung bis Abschluss</td><td>akquise (Recherche &amp; Anreicherung) · angebote (Erstellung &amp; Nachfassen) · pipeline (Pflege der Verkaufsstufen)</td></tr>
+      <tr><td>Marketing &amp; Growth</td><td>Sichtbarkeit, Kampagnen, Conversion</td><td>content (Texte &amp; Formate) · kampagnen (Planung &amp; Auswertung) · <b>funnel (Funnel-Building: Conversion-Strecken, Messpunkte, Übergabepunkte an den Vertrieb)</b> · kanaele (Reichweite: Suchmaschinen, Social)</td></tr>
+      <tr><td>Brand &amp; Design</td><td>Visuelle <b>und verbale</b> Identität</td><td>gestaltung (Assets für Vertrieb/Marketing) · vorlagen (Corporate-Identity-Vorlagen, Wiedererkennbarkeit) · <b>tonalitaet (Tone of Voice: Sprachregeln, Wording-Leitfäden, Prüfung von Texten gegen die Marke — die verbale Hälfte der Corporate Identity)</b></td></tr>
+      <tr><td>Development</td><td>Software bauen und betreiben</td><td>architektur · backend · frontend · review · qa · plattform (Betrieb der AIOS-Instanz selbst)</td></tr>
+      <tr><td>Management-Office</td><td>Führungs- und Strategieunterstützung</td><td>reporting (Kennzahlen und Entscheidungsvorlagen aufbereiten) · koordination (Protokolle, Nachhalten von Beschlüssen, Termine über Teams hinweg)</td></tr>
+      <tr><td>Finanzen &amp; Backoffice</td><td>Rechnungen, Belege, Zahlen</td><td>buchhaltung (Belege, Rechnungsläufe) · controlling (Budgets, Auswertungen)</td></tr>
+      <tr><td>Personal</td><td>Gewinnung und Verwaltung von Mitarbeitenden</td><td>recruiting (Ausschreibungen, Vorauswahl) · verwaltung (Onboarding, Unterlagen)</td></tr>
+      <tr><td>Kundenservice</td><td>Anfragen und Wissen</td><td>anfragen (Eingangs-Triage, Antwortentwürfe) · wissensbasis (Hilfe-Artikel, wiederkehrende Antworten)</td></tr>
+      <tr><td>Recht &amp; Compliance</td><td>Verträge und Pflichten</td><td>vertraege (Entwürfe, Prüfungen) · datenschutz (Auskünfte, Verzeichnisse)</td></tr>
+      <tr><td>Daten &amp; Analytik</td><td>Auswertungen und Datenqualität</td><td>auswertungen (Berichte, Ad-hoc-Fragen) · datenpflege (Qualität, Zusammenführung)</td></tr>
+    </table></div>
+    <div class="col">
+      <p class="sub">Jede Vorlage folgt dem Team-Muster oben (Lead koordiniert und nimmt ab, Fach-Agenten je Aufgabenfeld, optionaler Prüfer). Die Bibliothek ist bewusst erweiterbar — branchenspezifische Vorlagen (etwa Projektierung, Produktion, Logistik) kommen je Instanz dazu.</p>
+      <h3>Aktivierung je Instanz — ein Muster ohne Firmennamen</h3>
+      <p>Eine Firma, die gerade aufgebaut wird und ihre Produkte erst entwickelt, aktiviert zum Start typischerweise fünf Vorlagen: <b>Development voll besetzt</b> (Lead + Architektur, Backend, Frontend, Review, QA, Plattform — denn der gesamte Entwicklungsprozess der Firma läuft über dieses Board, einschließlich des Betriebs der Plattform selbst), dazu <b>Vertrieb</b>, <b>Marketing &amp; Growth</b>, <b>Brand &amp; Design</b> und das <b>Management-Office</b>. Die übrigen Vorlagen (Finanzen &amp; Backoffice, Personal, Kundenservice, Recht &amp; Compliance, Daten &amp; Analytik) bleiben liegen, bis der Bedarf real ist — Breite in der Bibliothek, Disziplin in der Aktivierung.</p>
+      <p><b>Produkte sind Projekte:</b> Jedes Produkt der Firma wird als eigenes Projekt im Board geführt, plus ein Projekt für die Plattform selbst. Die Teams arbeiten quer über diese Projekte; welche Produkte zuerst fertig werden, steuert die Projekt-Priorisierung — nicht eine Vervielfachung der Teams.</p>
+      <div class="honest"><strong>Wichtige Grenze — Board-Agenten vs. Produkt-Laufzeit-Agenten:</strong> Ein Produkt kann im Echtbetrieb ein <em>eigenes</em> Agenten-Geschwader mitbringen (etwa eine automatisierte Verarbeitungs-Pipeline mit spezialisierten Laufzeit-Agenten und einer eigenen, getrennten Produkt-Datenbank). Diese Laufzeit-Agenten sind <b>keine Board-Agenten</b> und erscheinen nicht im Organigramm der Instanz: Produkt-Daten gehören nicht in die Instanz-Datenbank, und das Board steuert den <em>Bau und Launch</em> eines Produkts — nicht dessen laufenden Betrieb. Das Board verwaltet die Entwicklung solcher Laufzeit-Agenten als Tasks im jeweiligen Produkt-Projekt. Ob laufende Produkt-Agenten später eine reine Anzeige-Sicht im Board bekommen, ist eine bewusst offene Zukunftsentscheidung — siehe Abschnitt K.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2 id="sec-g"><span class="sec">G ·</span> Bausteine: was liefert welche Schicht?</h2>
+      <p class="sub">Vier Schichten bauen das Produkt. Die Tabellen zeigen, was jede Schicht beiträgt — und belegen die technischen Aussagen mit der jeweiligen Quellcode-Stelle (Format: Dateiname im Paperclip-Quellcode).</p>
+      <h3>Schicht 1 · Nativ (bringt Paperclip mit, verifiziert)</h3>
+    </div>
+    <div class="tblwrap"><table>
+      <tr><th>Fähigkeit</th><th>Beleg im Quellcode</th></tr>
+      <tr><td>Rollen und Rechte: Nur-Lesen-Rolle hart erzwungen (inkl. Kommentarverbot); Owner unentfernbar</td><td><span class="m">authz.ts:115 · access.ts:1281</span></td></tr>
+      <tr><td>Pro-Nutzer-Zuordnung von Projekten und Agenten („beigetreten“) — Basis des weichen Daten-Zuschnitts</td><td><span class="m">project_memberships · agent_memberships</span></td></tr>
+      <tr><td>Agenten mit Hierarchie, Monatsbudgets, Genehmigungs-Pflichten, Aktivitätsprotokoll, Organigramm</td><td><span class="m">agents.reportsTo · budgetMonthlyCents</span></td></tr>
+      <tr><td>Firmen-Zugänge (Company-Secrets), gezielt an einzelne Agenten oder Umgebungen gebunden</td><td><span class="m">company_secrets · company_secret_bindings</span></td></tr>
+      <tr><td>Nutzer-eigene Zugänge (User-Secrets), je Nutzer an dessen Agenten gebunden</td><td><span class="m">user_secret_definitions · user_secret_declarations</span></td></tr>
+      <tr><td>Team-Vorlagen als installierbare Pakete (Teams-Katalog)</td><td><span class="m">services/teams-catalog.ts</span></td></tr>
+      <tr><td>Fortsetzbare Agenten-Sitzungen, Konversation per Frage-Task (Ask-Modus) — Live-Test bestanden</td><td><span class="m">claude-local/execute.ts (Sitzungs-Fortsetzung)</span></td></tr>
+    </table></div>
+    <div class="col"><h3>Schicht 2 · Patch-Register (unsere Änderungen am Fork)</h3></div>
+    <div class="tblwrap"><table>
+      <tr><th>Patch</th><th>Was er tut</th><th>Status</th></tr>
+      <tr><td>P1 — Branding</td><td>Firmenname/Logo statt „Paperclip“ in Titel, Login, Symbolen (white-label)</td><td><span class="chip ok">live</span></td></tr>
+      <tr><td>P2 — Daten-Zuschnitt</td><td>Neu definiert: erzwungener Team-Zuschnitt der Daten in den nativen Ansichten (Ausbaustufe 1b aus Abschnitt D) — <em>nicht mehr</em> „Menüpunkte ausblenden“</td><td><span class="chip plan">geplant</span></td></tr>
+      <tr><td>P3 — Login-Ziel</td><td>Nach dem Login auf das team-zugeschnittene Dashboard leiten</td><td><span class="chip plan">geplant</span></td></tr>
+      <tr><td>P4 — Cockpit sichtbar</td><td>Die versteckte Chat-Seite (Cockpit) freigeschaltet</td><td><span class="chip ok">live</span></td></tr>
+      <tr><td>P5 — Cockpit-Zugang</td><td>Zugangsprüfung repariert (nur Anfragen vom Server-Rechner) + Zugangs-Schlüssel sauber eingebunden</td><td><span class="chip ok">live</span></td></tr>
+      <tr><td>P6 — Cockpit-Motor</td><td>Motor-Tausch in der Chat-Route: „Kommentar speichern → Assistenz-Agenten des Nutzers wecken → Antwort streamen“ statt frischer KI-Aufruf. Task-Verankerung der Oberfläche bleibt; beide Hälften einzeln bewiesen, die Verbindung ist der Bau (Abschnitt E)</td><td><span class="chip plan">geplant</span></td></tr>
+    </table></div>
+    <div class="col"><h3>Schicht 3 · Plugin (nur was es nativ nicht gibt — keine Parallel-Ansichten)</h3></div>
+    <div class="tblwrap"><table>
+      <tr><th>Baustein</th><th>Funktion</th></tr>
+      <tr><td>Team-Entität</td><td>Unternehmensbereiche als Datenobjekt: Name, Mitglieder (Nutzer↔Team), zugehörige Agenten und Projekte. Paperclip kennt Teams zur Laufzeit nicht — das ist die einzige echte Lücke im Datenmodell.</td></tr>
+      <tr><td>AIOS-Einstellungsbereich</td><td>Eigener Reiter-Block in den bestehenden Einstellungen (Teams · Ansichten · Assistenten), eingehängt über den offiziellen Plugin-Slot <span class="m">companySettingsPage</span> — kein Patch nötig, nur für Führung sichtbar. Details in Abschnitt I.</td></tr>
+      <tr><td>Sichtbarkeits-Matrix</td><td>Einstellungs-Seite „Ansichten“ für die Führung: Team × Ansicht ein-/ausblenden (Stufe 2, Vorgaben aus Abschnitt D)</td></tr>
+      <tr><td>Onboarding-Automatik</td><td>Bei Einladung: Projekte/Agenten des Teams zuordnen, persönlichen Assistenten anlegen, dessen Zugang binden (User-Secret), Dauer-Task im Projekt „Assistenz“ erstellen und die Cockpit-Zuordnung eintragen</td></tr>
+      <tr><td>Vorschlags-Automatik</td><td>Die Logik aus Abschnitt C: Vorschlag → strukturierte Task mit Herkunft → Abnahme-Weg ins Ziel-Team</td></tr>
+      <tr><td>Brain</td><td>Das geteilte Wissensnetz: Markdown-Verzeichnis als Baum, Verweise/Schlagworte als Kanten, Graph-Ansicht im Board</td></tr>
+    </table></div>
+    <div class="col">
+      <h3>Schicht 4 · Laufzeitumgebung (ECC, serverseitig)</h3>
+      <p>Jeder Agent arbeitet in einem eigenen Arbeitsordner unterhalb des Instanz-Ordners auf dem Server. Dadurch erbt er automatisch die dort hinterlegten Regeln, sein Datei-Gedächtnis und sein Verhaltensprofil — das ist die technische Grundlage der „vier Gedächtnisschichten“ aus Abschnitt E und komplett unsichtbar für die Nutzer im Board.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2 id="sec-h"><span class="sec">H ·</span> Modelle, Zugänge und Kosten — pro Agent, nicht pauschal</h2>
+      <p class="sub">Grundregel 4 konkret: Für jeden Agenten legen Owner/Admin fest, welche KI er nutzt, wie sie bezahlt wird und welche Werkzeuge er erreichen darf. Nutzer können eigene Zugänge mitbringen. Alle vier Stellhebel existieren nativ — nichts davon muss erfunden werden.</p>
+      <h3>Die vier Stellhebel</h3>
+    </div>
+    <div class="tblwrap"><table>
+      <tr><th>Stellhebel</th><th>Was er bestimmt</th><th>Wie er funktioniert</th></tr>
+      <tr><td>KI-Anbieter &amp; Modell</td><td>Welche KI ein Agent nutzt: Claude, Codex, Gemini, Grok — oder ein lokales, kostenfreies Modell auf dem Server</td><td>Adapter-Auswahl und Modell-Einstellung pro Agent (Adapter-Familie ist im Fork vorhanden)</td></tr>
+      <tr><td>Abrechnungsart</td><td>Abo-Zugang, API-Schlüssel (nach Verbrauch) oder lokal (nur Hardware-Kosten) — je Agent unterschiedlich</td><td>Wird vom Adapter automatisch erkannt, je nachdem welcher Zugang dem Agenten hinterlegt ist</td></tr>
+      <tr><td>Firmen-Werkzeuge</td><td>Zugänge der Firma zu externen Diensten (z. B. Video-Generierung wie Higgsfield oder Kling, Design-Tools, Datenquellen)</td><td>Company-Secrets: Die Führung hinterlegt den Zugang einmal zentral (Einstellungen → Secrets) und bindet ihn gezielt an genau die Agenten oder Umgebungen, die ihn brauchen</td></tr>
+      <tr><td>Nutzer-eigene Zugänge</td><td>„Jeder bringt sein Abo mit“: Der Assistent von Nutzer X läuft auf X’ eigenem Claude-Abo oder API-Schlüssel</td><td>User-Secrets: Die Führung definiert den Zugangs-Typ einmal (z. B. „persönlicher Claude-Zugang“); jeder Nutzer hinterlegt seinen eigenen Wert; die Plattform reicht ihn nur an dessen Assistenten weiter</td></tr>
+    </table></div>
+    <div class="col"><h3>Vorgeschlagene Standard-Zuordnung je Agenten-Kategorie</h3></div>
+    <div class="tblwrap"><table>
+      <tr><th>Agenten-Kategorie</th><th>Modell-Klasse</th><th>Zugang (Entscheid des Inhabers, 12.07.2026: Abo zuerst)</th><th>Hinterlegt als</th></tr>
+      <tr><td>Assistent der Führung (Cockpit)</td><td>Top-Modell</td><td>Betreiber-Abo (Anmelde-Login)</td><td>Schlüsselbund des Servers (heute live)</td></tr>
+      <tr><td>Persönliche Assistenten</td><td>Mittel bis top</td><td>Eigenes Abo des Nutzers (Anmelde-Login) — hinterlegt vom Nutzer selbst oder vom Admin; API-Schlüssel nur als Alternative, wo ein Abo nicht passt</td><td>User-Secret des jeweiligen Nutzers, oder vom Admin gebundener Zugang</td></tr>
+      <tr><td>Team-Leads</td><td>Top-Modell</td><td>Firmen-Abo (Anmelde-Login) oder Firmen-Schlüssel — je Agent vom Admin gewählt</td><td>Company-Secret → Lead-Agenten</td></tr>
+      <tr><td>Fach-Agenten (Executor)</td><td>Mittelklasse</td><td>Firmen-Abo oder Firmen-Schlüssel — je Agent vom Admin gewählt; Routine-Arbeit bevorzugt lokal</td><td>Company-Secret → Team-Umgebung</td></tr>
+      <tr><td>Routine-/Massenarbeit, Hintergrund-Prozesse</td><td>Lokal (z. B. gemma auf dem Server)</td><td>Kostenfrei (nur Hardware)</td><td>Lokaler Endpunkt in der Umgebung</td></tr>
+      <tr><td>Externe Workflow-Dienste (Video, Design, Daten)</td><td>—</td><td>Je Dienst-Abo der Firma</td><td>Company-Secret → nur die Agenten, die den Dienst brauchen</td></tr>
+    </table></div>
+    <div class="col">
+      <div class="honest"><strong>Entschieden (Inhaber, 12.07.2026) — Abo zuerst, kein Kostendeckel:</strong> Der gewollte Normalfall ist der <em>Anmelde-Login mit einem Abo</em> — das eigene Abo des Nutzers für seinen Assistenten (hinterlegt von ihm selbst oder vom Admin) und Firmen-Abos für die Arbeits-Agenten; API-Schlüssel sind nur die Alternative für Fälle, in denen ein Abo nicht passt. Pro Agent bleibt frei wählbar, über welchen Zugang er läuft (Grundregel 4). <b>Es gibt keinen Standard-Kostendeckel:</b> Abos bringen ihre eigenen Nutzungs-Limits mit — das ist die reale Grenze. Beobachtet wird der <em>Token-Verbrauch je Agent</em> (sichtbar in der Kosten-Ansicht, für Leads auf ihr Team beschränkt); Paperclips optionales Geld-Budget je Agent bleibt standardmäßig ungesetzt und wird nur aktiviert, wenn der Inhaber es für einen Agenten ausdrücklich will. Euro-Beträge werden erst relevant, falls später API-Abrechnung nach Verbrauch dazukommt. <b>Ehrlicher Aufwand des Abo-Wegs:</b> Ein Anmelde-Login je Assistent auf einem gemeinsamen Server heißt ein eigenes, einmal einzurichtendes Anmelde-Profil pro Assistent — dieser Einrichtungsschritt gehört in die Onboarding-Automatik (Abschnitt G, Plugin-Baustein).</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="col">
+      <h2 id="sec-i"><span class="sec">I ·</span> Einstellungen &amp; Verwaltung — das Backend der Führung</h2>
+      <p class="sub">Alles, was dieses Zielbild an Steuerung verlangt, hat genau <b>einen</b> Ort: die bestehende Einstellungs-Struktur des Boards. Unsere eigenen Einstellungen kommen als eigener Reiter-Block <b>„AIOS“</b> hinein — über den offiziellen Plugin-Mechanismus für Einstellungs-Seiten (<span class="m">companySettingsPage</span>, im Quellcode verifiziert), mit Berechtigungs-Gating, sodass nur Owner/Admin ihn sehen. Es gibt keine zweite, versteckte Konfigurations-Welt: Was Paperclip nativ verwaltet, bleibt an seinem nativen Ort und wird von unseren Seiten verlinkt statt nachgebaut.</p>
+    </div>
+    <div class="tblwrap"><table>
+      <tr><th>Einstellung</th><th>Ort</th><th>Wer darf</th><th>Herkunft</th></tr>
+      <tr><td>Mitglieder, Rollen, Einladungen</td><td>Einstellungen → Members / Invites</td><td>Owner, Admin</td><td><span class="chip ok">nativ vorhanden</span></td></tr>
+      <tr><td>Teams: anlegen, Nutzer↔Team, Agenten- und Projekt-Zuordnung, Abnahme-Verantwortliche des Vorschlags-Workflows</td><td><b>AIOS-Reiter „Teams“</b></td><td>Owner, Admin</td><td><span class="chip plan">Plugin, geplant</span></td></tr>
+      <tr><td>Sichtbarkeits-Matrix: welche Ansicht für welches Team eingeblendet ist (Stufe 2)</td><td><b>AIOS-Reiter „Ansichten“</b></td><td>Owner, Admin</td><td><span class="chip plan">Plugin, geplant</span></td></tr>
+      <tr><td>Nutzer-Assistenten: <b>welcher Agent im Cockpit welches Nutzers lebt</b>, Modellklasse, aktiv/pausiert, Zugangs-Quelle (eigenes Abo / eigener Schlüssel / Firmen-Zugang / lokal), optionales Budget</td><td><b>AIOS-Reiter „Assistenten“</b></td><td>Owner, Admin</td><td><span class="chip plan">Plugin, geplant</span></td></tr>
+      <tr><td>Agent-Feinkonfiguration: Adapter, Modell, Skill-Liste, Rechte-Profil, Budget je Agent</td><td>Agenten-Detailseite des jeweiligen Agenten</td><td>Owner, Admin</td><td><span class="chip ok">nativ vorhanden</span></td></tr>
+      <tr><td>Firmen-Zugänge (Werkzeug-APIs wie Video-/Design-Dienste)</td><td>Einstellungen → Secrets (Firmen-Bereich)</td><td>Owner, Admin</td><td><span class="chip ok">nativ vorhanden</span></td></tr>
+      <tr><td>Nutzer-eigene Zugänge (eigenes Abo / eigener API-Schlüssel)</td><td>Einstellungen → Secrets: Typ definiert die Führung, den Wert trägt jeder Nutzer selbst ein; fehlende Werte werden dem Nutzer aktiv angezeigt</td><td>Typ: Führung · Wert: der Nutzer</td><td><span class="chip ok">nativ vorhanden (inkl. Hinweis-Banner)</span></td></tr>
+      <tr><td>Instanz-Technik: Deployment, Adapter, Plugins, experimentelle Funktionen</td><td>Instanz-Einstellungen</td><td>nur Owner</td><td><span class="chip ok">nativ vorhanden</span></td></tr>
+    </table></div>
+    <div class="col">
+      <p><b>Nutzerverwaltung als ein durchgehender Ablauf:</b> Die Führung lädt ein (nativ: Members/Invites, mit Rolle) → die Onboarding-Automatik legt den Assistenten an, bindet dessen Zugang, erstellt seine Dauer-Task im Projekt „Assistenz“ und trägt die Cockpit-Zuordnung ein → ab dann verwaltet die Führung alles Laufende im AIOS-Reiter: Team-Wechsel unter „Teams“, Ansichten unter „Ansichten“, und unter „Assistenten“ jederzeit umkonfigurierbar, welcher Agent im Cockpit eines Nutzers lebt, mit welchem Modell, Budget und Zugang.</p>
+      <div class="honest"><strong>Eine bewusste Kopplung, offen benannt:</strong> Die Zuordnungs-Daten (Nutzer↔Assistent, Team-Mitgliedschaften, Sichtbarkeits-Matrix) liegen in Plugin-Tabellen — aber die Fork-Patches P2 (Daten-Zuschnitt) und P6 (Cockpit-Motor) müssen sie <em>lesen</em>, um zu wirken. Fork und Plugin berühren sich also an genau dieser schmalen, dokumentierten Stelle. Das ist gewollt (eine Wahrheit statt zwei Konfigurationen), muss aber bei jedem Upstream-Update mitgeprüft werden.</div>
+    </div>
+  </section>
+
+  <section class="col">
+    <h2 id="sec-j"><span class="sec">J ·</span> Weg zum Zielbild</h2>
+    <div class="phase now"><span class="n">1</span><div><b>Jetzt: Fundament festschreiben</b><span class="d">Dieses Zielbild abnehmen → den Umsetzungs-Plan (Soft-Fork-Plan) darauf neu schreiben · Cockpit-Zugang zusätzlich auf Führungs-Konten beschränken (kleiner Schutz-Patch).</span></div></div>
+    <div class="phase"><span class="n">2</span><div><b>Teams &amp; weicher Daten-Zuschnitt (Stufe 1a)</b><span class="d">Plugin: Team-Entität + Onboarding-Automatik + AIOS-Reiter „Teams“ in den Einstellungen · Ansichten standardmäßig auf Team-Daten gefiltert · Login-Ziel = team-zugeschnittenes Dashboard (P3).</span></div></div>
+    <div class="phase"><span class="n">3</span><div><b>Sichtbarkeits-Matrix (Stufe 2)</b><span class="d">AIOS-Reiter „Ansichten“ (Team × Ansicht, Vorgaben aus Abschnitt D) · erzwungener Daten-Zuschnitt (P2 / Stufe 1b) nur dort, wo weiches Filtern nicht reicht.</span></div></div>
+    <div class="phase"><span class="n">4</span><div><b>Assistenten für alle (Cockpit-Motor, P6)</b><span class="d">Assistenz-Agent je Nutzer, automatisch beim Onboarding, Gespräche im Projekt „Assistenz“ · Cockpit-Seite auf Agenten-Konversation umgestellt · AIOS-Reiter „Assistenten“ (Cockpit-Zuordnung je Nutzer) · Vorschlags-Workflow für Experten aktiv.</span></div></div>
+    <div class="phase"><span class="n">5</span><div><b>Agenten-Teams ausrollen</b><span class="d">Teams-Katalog-Vorlagen je Bereichstyp · Teams gemäß Muster (Abschnitt F) · Modell- und Zugangs-Bindung gemäß Standard-Zuordnung (Abschnitt H).</span></div></div>
+    <div class="phase"><span class="n">6</span><div><b>Betrieb scharf schalten</b><span class="d">Eigene Domain, Verschlüsselung, kontrollierte Erreichbarkeit von außen — erst dann Logins außerhalb des Firmennetzes.</span></div></div>
+  </section>
+
+  <section class="col">
+    <h2 id="sec-k"><span class="sec">K ·</span> Offene Entscheidungen (Inhaber)</h2>
+    <p class="sub">Hier steht ausschließlich, was wirklich noch eine Eingabe des Inhabers braucht. Alle übrigen Entscheidungen sind getroffen und in den jeweiligen Abschnitten als entschieden markiert: Cockpit-Umbau als Zielweg (E) · Team-Vorlagen-Bibliothek als Bauplan (F) · ein Assistent je Nutzer und das Assistenz-Projekt (E) · Sichtbarkeits-Vorbelegung übernommen (D, Tabelle 1) · Zugangs-Modell „Abo zuerst, kein Kostendeckel“ (H) · Team-Budget-Sicht für Leads eingeschaltet (D/H) — alle am 12.07.2026.</p>
+    <ul class="decis">
+      <li><b>Sicht auf Produkt-Laufzeit-Agenten (Zukunft):</b><span>Wenn ein Produkt im Echtbetrieb eigene Laufzeit-Agenten hat: Sollen diese eine reine Anzeige-Sicht im Board bekommen, oder bleiben sie vollständig produktintern? (Steht erst an, wenn ein Produkt live geht — heute keine Auswirkung.)</span></li>
+    </ul>
+  </section>
+
+  <footer class="src col">
+    Verifikationsgrundlage (Paperclip-Quellcode, Basis-Release v2026.707.0): Datenmodell <code>agents.ts · company_memberships.ts · agent_memberships.ts · project_memberships.ts · company_secrets*.ts · user_secret_definitions.ts · user_secret_declarations.ts</code> · Server <code>authz.ts · access.ts · board-chat.ts · services/teams-catalog.ts</code> · Adapter <code>claude-local/execute.ts</code> · mitgelieferte Katalog-Vorlagen <code>packages/teams-catalog/catalog/</code> (bundled: company-defaults, product, software-development; optional: content). Live-Tests am 12.07.2026: Chat-Seite Ende-zu-Ende (echte Board-Daten) · Agenten-Konversation über Frage-Task in zwei Runden mit Kontinuität.
+  </footer>
+</div>
+
+<script>
+(function () {
+  var toc = document.getElementById('toc');
+  var pin = document.getElementById('tocPin');
+  if (!toc || !pin) return;
+
+  pin.addEventListener('click', function () {
+    var pinned = toc.classList.toggle('pinned');
+    pin.setAttribute('aria-pressed', pinned ? 'true' : 'false');
+  });
+
+  var links = Array.prototype.slice.call(toc.querySelectorAll('a[data-toc]'));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute('data-toc')] = a; });
+  var targets = links
+    .map(function (a) { return document.getElementById(a.getAttribute('data-toc')); })
+    .filter(Boolean);
+
+  if (!('IntersectionObserver' in window) || !targets.length) return;
+
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      var link = byId[entry.target.id];
+      if (!link || !entry.isIntersecting) return;
+      links.forEach(function (l) { l.classList.remove('active'); });
+      link.classList.add('active');
+    });
+  }, { rootMargin: '-10% 0px -75% 0px', threshold: 0 });
+
+  targets.forEach(function (t) { observer.observe(t); });
+})();
+</script>

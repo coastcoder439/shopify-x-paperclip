@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commerce • Nordwind Studio • Paperclip</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235E8E3E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 7h12l1.5 13.5a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1L6 7Z' fill='%2395BF47' fill-opacity='.3'/%3E%3Cpath d='M9 10V6a3 3 0 0 1 6 0v4'/%3E%3C/svg%3E">
+<style>
+  /* ============ Paperclip Design-Token (aus laufender Instanz extrahiert) ============ */
+  :root {
+    color-scheme: light;
+    --bg: #FFFFFF;
+    --fg: #202020;
+    --fg-strong: #171717;
+    --muted: #F5F5F5;
+    --muted-fg: #8B8B8B;
+    --muted-fg-2: #A3A3A3;
+    --border: #EBEBEB;
+    --border-soft: #F0F0F0;
+    --sidebar: #FAFAFA;
+    --primary: #1F1F1F;
+    --primary-fg: #FAFAFA;
+    --green: #22A05A;
+    --green-wash: #E7F5EC;
+    --red: #D64545;
+    --red-wash: #FBEAEA;
+    --amber: #B97F10;
+    --amber-wash: #FBF3DC;
+    --blue: #3B6FD4;
+    --blue-wash: #EAF0FB;
+    --shopify: #5E8E3E;
+    --shopify-bright: #95BF47;
+    --ga: #F9AB00;
+    --ga-deep: #E37400;
+    --mono: "SF Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+    --agent-otto: #F3E6C4;
+    --agent-theo: #CFE4F7;
+    --agent-mia: #F7CFDC;
+    --agent-ida: #D8F0DC;
+    --agent-karla: #F7E3CF;
+    --agent-emma: #E4D9F5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: "InterVariable", "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  svg { display: block; }
+
+  .app {
+    display: flex; min-height: 100vh;
+    background: linear-gradient(to right, var(--sidebar) 0, var(--sidebar) 239px, var(--border) 239px, var(--border) 240px, var(--bg) 240px);
+  }
+
+  /* ============ Sidebar ============ */
+  .sidebar {
+    width: 240px; flex: none;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 10px 12px 12px;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .company {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 8px; margin-bottom: 10px;
+    cursor: default;
+  }
+  .company:hover { background: var(--border-soft); }
+  .company-logo {
+    width: 22px; height: 22px; border-radius: 6px; flex: none;
+    background: linear-gradient(135deg, #2C5F8A 0%, #3E8E6E 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .company-logo svg { width: 12px; height: 12px; }
+  .company-name { font-weight: 600; font-size: 13.5px; color: var(--fg-strong); flex: 1; white-space: nowrap; }
+  .company-caret { color: var(--muted-fg); display: flex; }
+  .company-search { color: var(--fg); margin-left: 2px; display: flex; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 5px 8px; margin: 1px 0; border-radius: 7px;
+    font-size: 13.5px; color: #3D3D3D; cursor: default;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: var(--border-soft); }
+  .nav-item.active { background: #EDEDED; color: var(--fg-strong); font-weight: 600; }
+  .nav-item .icon { width: 16px; height: 16px; flex: none; color: #6E6E6E; display: flex; align-items: center; justify-content: center; }
+  .nav-item.active .icon { color: var(--fg-strong); }
+  .nav-badge {
+    margin-left: auto; background: var(--fg-strong); color: #fff;
+    font-size: 10.5px; font-weight: 600; min-width: 16px; height: 16px;
+    border-radius: 99px; display: flex; align-items: center; justify-content: center; padding: 0 5px;
+  }
+  .nav-label {
+    font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted-fg-2); padding: 0 8px; margin: 16px 0 4px;
+  }
+  .sidebar-spacer { flex: 1; }
+  .sidebar-user {
+    display: flex; align-items: center; gap: 9px;
+    padding: 8px 8px 2px; border-top: 1px solid var(--border); margin-top: 10px;
+  }
+  .avatar {
+    width: 22px; height: 22px; border-radius: 7px; flex: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9.5px; font-weight: 700; color: #454545;
+  }
+  .avatar.dark { background: #E4E4E4; color: #3A3A3A; }
+  .sidebar-user span { font-size: 13.5px; color: #3D3D3D; }
+
+  /* ============ Main ============ */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .topbar {
+    height: 46px; flex: none;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 24px;
+    position: sticky; top: 0; background: rgba(255,255,255,.92);
+    backdrop-filter: blur(6px); z-index: 20;
+  }
+  .topbar-title {
+    font-size: 12.5px; font-weight: 700; letter-spacing: .07em;
+    color: var(--fg-strong); margin-right: auto;
+  }
+  .conn {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border); border-radius: 99px;
+    padding: 3px 10px 3px 7px; font-size: 12px; font-weight: 500; color: #4A4A4A;
+    background: #fff;
+  }
+  .conn .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .conn svg { width: 13px; height: 13px; }
+  .sync-note { font-size: 12px; color: var(--muted-fg); margin: 0 2px; }
+  .topbar-divider { width: 1px; height: 18px; background: var(--border); }
+  .range-select {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; font-size: 12.5px; font-weight: 500; color: var(--fg);
+    background: #fff; cursor: default;
+  }
+  .range-select:hover { background: var(--sidebar); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    border-radius: 8px; padding: 5px 12px;
+    font-size: 12.5px; font-weight: 600; cursor: default;
+    border: 1px solid transparent; font-family: inherit;
+  }
+  .btn.primary { background: var(--primary); color: var(--primary-fg); }
+  .btn.primary:hover { background: #333; }
+  .btn.ghost { background: #fff; border-color: var(--border); color: var(--fg); }
+  .btn.ghost:hover { background: var(--sidebar); }
+  .btn.sm { padding: 4px 10px; font-size: 12px; }
+
+  .content { padding: 22px 26px 40px; max-width: 1460px; width: 100%; margin: 0 auto; }
+
+  .section-head {
+    display: flex; align-items: baseline; gap: 10px;
+    margin: 26px 0 10px;
+  }
+  .section-head:first-child { margin-top: 0; }
+  .section-title {
+    font-size: 11.5px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: #5E5E5E;
+  }
+  .section-sub { font-size: 12px; color: var(--muted-fg); }
+  .section-action { margin-left: auto; font-size: 12.5px; color: var(--muted-fg); display: inline-flex; align-items: center; gap: 6px; }
+  .section-action:hover { color: var(--fg); }
+
+  .card {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+  }
+
+  /* ============ Tab-Leiste ============ */
+  .tabbar {
+    display: flex; align-items: center; gap: 22px; height: 38px;
+    padding: 0 24px; border-bottom: 1px solid var(--border);
+    background: #fff; position: sticky; top: 46px; z-index: 19;
+  }
+  .tab {
+    font-size: 13px; color: var(--muted-fg); cursor: default;
+    height: 100%; display: flex; align-items: center; position: relative;
+  }
+  .tab.active { color: var(--fg-strong); font-weight: 600; }
+  .tab.active::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px;
+    height: 2px; background: var(--fg-strong);
+  }
+
+  /* ============ Design-Pipeline ============ */
+  .pipeline-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .pipeline-col { padding: 14px 16px; }
+  .pipeline-col + .pipeline-col { border-left: 1px solid var(--border-soft); }
+  .stage-label {
+    font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted-fg);
+  }
+  .stage-num { font-size: 22px; font-weight: 700; color: var(--fg-strong); margin-top: 4px; letter-spacing: -.02em; }
+  .stage-sub { font-size: 12px; color: var(--muted-fg); margin-top: 2px; }
+  .pipe-thumbs { display: flex; gap: 6px; margin-top: 9px; }
+  .pipe-thumb {
+    width: 30px; height: 30px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: rgba(255,255,255,.92);
+  }
+
+  /* ============ Fachkarten (SEO / Buchhaltung / Support) ============ */
+  .trio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .kw-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 16px; }
+  .kw-row + .kw-row { border-top: 1px solid var(--border-soft); }
+  .kw-name { font-weight: 600; font-size: 13px; color: var(--fg-strong); }
+  .kw-vol { font-size: 11px; color: var(--muted-fg); margin-top: 1px; }
+  .kw-pos { display: flex; align-items: center; gap: 7px; flex: none; }
+  .guv-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 16px; font-size: 13px; color: #3D3D3D; }
+  .guv-row .amt { font-family: var(--mono); }
+  .guv-row.total {
+    border-top: 1px solid var(--border-soft); margin-top: 5px; padding-top: 9px;
+    font-weight: 700; color: var(--fg-strong);
+  }
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 16px 14px; }
+
+  /* ============ KPI row ============ */
+  .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .kpi { padding: 14px 16px 13px; position: relative; }
+  .kpi-label { font-size: 12px; color: var(--muted-fg); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .kpi-src { margin-left: auto; display: flex; align-items: center; gap: 3px; opacity: .9; }
+  .kpi-src svg { width: 13px; height: 13px; }
+  .kpi-value { font-size: 26px; font-weight: 700; letter-spacing: -.02em; color: var(--fg-strong); margin-top: 5px; line-height: 1.15; }
+  .kpi-trend { font-size: 12px; margin-top: 3px; display: flex; align-items: center; gap: 5px; }
+  .trend { font-weight: 600; display: inline-flex; align-items: center; gap: 2px; }
+  .trend.up { color: var(--green); }
+  .trend.down { color: var(--red); }
+  .trend svg { width: 11px; height: 11px; }
+  .kpi-trend .vs { color: var(--muted-fg-2); }
+
+  /* ============ Charts row ============ */
+  .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+  .card-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 13px 16px 0;
+  }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--fg-strong); }
+  .card-title-note { font-size: 12px; color: var(--muted-fg); }
+  .card-head-right { margin-left: auto; font-size: 12px; color: var(--muted-fg); display: flex; align-items: center; gap: 12px; }
+  .legend { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted-fg); }
+  .legend i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  .chart-body { padding: 10px 16px 14px; }
+
+  .traffic { padding: 6px 16px 12px; }
+  .traffic-row { display: grid; grid-template-columns: 108px 1fr 92px; align-items: center; gap: 10px; padding: 7px 0; }
+  .traffic-row + .traffic-row { border-top: 1px solid var(--border-soft); }
+  .traffic-name { font-size: 12.5px; color: var(--fg); font-weight: 500; }
+  .traffic-bar { height: 7px; border-radius: 99px; background: var(--muted); overflow: hidden; }
+  .traffic-bar i { display: block; height: 100%; border-radius: 99px; }
+  .traffic-val { font-size: 12px; color: var(--muted-fg); text-align: right; font-family: var(--mono); white-space: nowrap; }
+  .traffic-foot { padding: 10px 16px; border-top: 1px solid var(--border-soft); font-size: 12px; color: var(--muted-fg); display: flex; justify-content: space-between; }
+  .traffic-foot b { color: var(--fg-strong); font-weight: 600; }
+
+  /* ============ Team ============ */
+  .team-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+  .agent-card { padding: 13px 14px 12px; display: flex; flex-direction: column; gap: 0; }
+  .agent-top { display: flex; align-items: center; gap: 8px; }
+  .agent-avatar { width: 26px; height: 26px; border-radius: 8px; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: #40404D; flex: none; }
+  .agent-name { font-weight: 600; font-size: 13.5px; color: var(--fg-strong); }
+  .agent-open { margin-left: auto; color: var(--muted-fg-2); display: flex; }
+  .agent-role { font-family: var(--mono); font-size: 10.5px; color: var(--muted-fg); margin: 7px 0 8px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 500; border-radius: 99px;
+    padding: 2px 9px; border: 1px solid transparent; width: fit-content;
+  }
+  .pill .p-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .pill.idle { background: #F2F3F4; color: #7D8388; border-color: #E9EAEB; }
+  .pill.idle .p-dot { background: #B9BEC2; }
+  .pill.working { background: var(--green-wash); color: #1F7A45; border-color: #D3EBDD; }
+  .pill.working .p-dot { background: var(--green); }
+  .pill.scheduled { background: var(--blue-wash); color: #2F5AB0; border-color: #D9E4F7; }
+  .pill.scheduled .p-dot { background: var(--blue); }
+  .agent-model { font-family: var(--mono); font-size: 10.5px; color: var(--muted-fg-2); margin-top: 8px; line-height: 1.45; }
+  .agent-last {
+    border-top: 1px solid var(--border-soft); margin-top: 10px; padding-top: 9px;
+    font-size: 12px; color: #5E5E5E; line-height: 1.45; flex: 1;
+  }
+  .agent-last b { color: var(--fg); font-weight: 500; }
+  .task-ref {
+    font-family: var(--mono); font-size: 10.5px; color: var(--muted-fg);
+    background: var(--muted); border: 1px solid var(--border-soft);
+    padding: 1px 6px; border-radius: 5px; white-space: nowrap;
+  }
+  .agent-last .task-line { display: flex; align-items: center; gap: 6px; margin-top: 7px; }
+
+  /* ============ Activity + Approvals ============ */
+  .duo-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 12px; align-items: start; }
+  .feed { padding: 4px 0; }
+  .feed-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 16px; }
+  .feed-row + .feed-row { border-top: 1px solid var(--border-soft); }
+  .feed-avatar { width: 22px; height: 22px; border-radius: 7px; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: #40404D; flex: none; margin-top: 1px; }
+  .feed-text { font-size: 13px; color: #4A4A4A; line-height: 1.5; }
+  .feed-text b { color: var(--fg-strong); font-weight: 600; }
+  .feed-time { margin-left: auto; font-size: 11.5px; color: var(--muted-fg-2); white-space: nowrap; padding-top: 2px; }
+  .feed-flag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; border-radius: 5px; padding: 1px 6px; margin-right: 4px; vertical-align: 1px; }
+  .feed-flag.warn { background: var(--amber-wash); color: var(--amber); }
+  .feed-flag.ok { background: var(--green-wash); color: #1F7A45; }
+
+  .approvals-count {
+    background: var(--amber-wash); color: var(--amber);
+    font-size: 11px; font-weight: 700; border-radius: 99px; padding: 2px 9px;
+  }
+  .approval { padding: 13px 16px; }
+  .approval + .approval { border-top: 1px solid var(--border-soft); }
+  .approval-title { font-size: 13.5px; font-weight: 600; color: var(--fg-strong); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .cat-chip {
+    font-size: 10.5px; font-weight: 600; border-radius: 5px; padding: 1px 7px;
+    background: var(--muted); color: var(--muted-fg); border: 1px solid var(--border-soft);
+    white-space: nowrap;
+  }
+  .approval-desc { font-size: 12.5px; color: var(--muted-fg); margin: 4px 0 10px; line-height: 1.5; }
+  .approval-foot { display: flex; align-items: center; gap: 8px; }
+  .approval-by { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted-fg); margin-right: auto; }
+  .approval-by .avatar { width: 18px; height: 18px; border-radius: 6px; font-size: 8px; }
+
+  /* ============ Design-Performance ============ */
+  table.products { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .products th {
+    text-align: left; font-size: 10.5px; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--muted-fg);
+    padding: 11px 16px; border-bottom: 1px solid var(--border);
+  }
+  .products td { padding: 11px 16px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+  .products tr:last-child td { border-bottom: none; }
+  .prod-cell { display: flex; align-items: center; gap: 10px; }
+  .prod-thumb { width: 28px; height: 28px; border-radius: 7px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .prod-name { font-weight: 600; color: var(--fg-strong); }
+  .prod-sku { font-family: var(--mono); font-size: 10.5px; color: var(--muted-fg-2); }
+  .rev { font-family: var(--mono); font-size: 12.5px; }
+  .spark { color: var(--green); }
+  .spark.down { color: var(--red); }
+  .spark.flat { color: var(--muted-fg-2); }
+  .agent-hint { font-size: 12.5px; color: #4A4A4A; display: flex; align-items: center; gap: 7px; }
+  .agent-hint .avatar { width: 18px; height: 18px; border-radius: 6px; font-size: 8px; flex: none; }
+  .agent-hint em { font-style: normal; color: var(--muted-fg-2); }
+
+  .page-foot {
+    margin-top: 26px; padding-top: 14px; border-top: 1px solid var(--border-soft);
+    font-size: 11.5px; color: var(--muted-fg-2);
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .page-foot svg { width: 12px; height: 12px; }
+
+  @media (max-width: 1180px) {
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    .team-grid { grid-template-columns: repeat(3, 1fr); }
+    .charts-grid, .duo-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 800px) {
+    .sidebar { display: none; }
+    .kpi-grid, .team-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="company">
+      <div class="company-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4 15 Q9 5 12 11 T20 8"/></svg>
+      </div>
+      <span class="company-name">Nordwind Studio</span>
+      <span class="company-caret"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg></span>
+      <span class="company-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+    </div>
+
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>New Task</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>Dashboard</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6Z"/></svg></span>Inbox<span class="nav-badge">2</span></a>
+
+    <div class="nav-label">Work</div>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></span>Tasks</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 21v-5h5"/></svg></span>Routines</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg></span>Goals</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="M12 12 4.2 7.6M12 12l7.8-4.4M12 12v9"/></svg></span>Artifacts</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v3m0 12v3m9-9h-3M6 12H3m14.5-6.5-2 2m-7 7-2 2m11 0-2-2m-7-7-2-2"/><circle cx="12" cy="12" r="3.2"/></svg></span>Skills</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></span>Projects</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8.5 8.5 0 0 1-12.4 7.5L3 21l1.6-5.4A8.5 8.5 0 1 1 21 12Z"/></svg></span>Chat</a>
+
+    <div class="nav-label">Modules</div>
+    <a class="nav-item active"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.5 13.5a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1L6 7Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg></span>Commerce</a>
+
+    <div class="nav-label">Agents</div>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/></svg></span>Otto</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>Ida</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>Theo</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 15-6-2 14-6-3.5L3 11Z"/><path d="M10 15.5V19l2.5-2"/></svg></span>Mia</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3 2.8-4.5 5.5-4.5S13.7 16 14.5 19"/><circle cx="17" cy="9" r="2.6"/><path d="M15.8 14.7c2.4.1 4 1.5 4.7 4.3"/></svg></span>See all agents</a>
+
+    <div class="nav-label">Company</div>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M12 7.5V12m0 0-5.5 4M12 12l5.5 4"/></svg></span>Org</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/></svg></span>Timeline</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2v20M16.5 6.5c0-1.5-2-2.5-4.5-2.5S7.5 5 7.5 7 9 9.8 12 10s4.5 1.3 4.5 3-2 3-4.5 3-4.5-1-4.5-2.5"/></svg></span>Costs</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3.5 2"/></svg></span>Activity</a>
+    <a class="nav-item"><span class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.15-1.45l2-1.55-2-3.46-2.37.96A7 7 0 0 0 14 5.3L13.7 3h-3.4L10 5.3a7 7 0 0 0-2.48 1.2l-2.37-.96-2 3.46 2 1.55A7 7 0 0 0 5 12c0 .5.05.98.15 1.45l-2 1.55 2 3.46 2.37-.96c.74.55 1.58.97 2.48 1.2l.3 2.3h3.4l.3-2.3a7 7 0 0 0 2.48-1.2l2.37.96 2-3.46-2-1.55c.1-.47.15-.95.15-1.45Z"/></svg></span>Settings</a>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-user">
+      <span class="avatar dark">BO</span>
+      <span>Board</span>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">COMMERCE</span>
+
+      <span class="conn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#5E8E3E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.5 13.5a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1L6 7Z" fill="#95BF47" fill-opacity=".25"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg>
+        Shopify
+        <span class="dot"></span>
+      </span>
+      <span class="conn">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="15.2" y="3" width="5.2" height="18" rx="2.6" fill="#F9AB00"/><rect x="9.4" y="9" width="5.2" height="12" rx="2.6" fill="#E37400"/><circle cx="6.2" cy="18.4" r="2.6" fill="#E37400"/></svg>
+        GA4
+        <span class="dot"></span>
+      </span>
+      <span class="conn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4285F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        Search Console
+        <span class="dot"></span>
+      </span>
+      <span class="conn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3D3D3D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Printful
+        <span class="dot"></span>
+      </span>
+      <span class="sync-note">Sync vor 4 Min.</span>
+
+      <span class="topbar-divider"></span>
+      <span class="range-select">Letzte 30 Tage <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+      <button class="btn primary">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"/><path d="M9 13h6M9 17h4"/></svg>
+        Report erstellen
+      </button>
+    </div>
+
+    <div class="tabbar">
+      <span class="tab active">Übersicht</span>
+      <span class="tab">Design-Studio</span>
+      <span class="tab">SEO &amp; Ranking</span>
+      <span class="tab">Buchhaltung</span>
+      <span class="tab">Kundenservice</span>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== KPI ===== -->
+      <div class="section-head">
+        <span class="section-title">Shop-Performance</span>
+        <span class="section-sub">14.06. – 13.07.2026 · verglichen mit Vormonat</span>
+      </div>
+      <div class="kpi-grid">
+        <div class="card kpi">
+          <div class="kpi-label">Umsatz
+            <span class="kpi-src" title="Quelle: Shopify"><svg viewBox="0 0 24 24" fill="none" stroke="#5E8E3E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.5 13.5a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1L6 7Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg></span>
+          </div>
+          <div class="kpi-value">24.640&nbsp;€</div>
+          <div class="kpi-trend"><span class="trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>+12,4&nbsp;%</span><span class="vs">vs. Vormonat</span></div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">Bestellungen
+            <span class="kpi-src" title="Quelle: Shopify"><svg viewBox="0 0 24 24" fill="none" stroke="#5E8E3E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.5 13.5a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1L6 7Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg></span>
+          </div>
+          <div class="kpi-value">724</div>
+          <div class="kpi-trend"><span class="trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>+9,2&nbsp;%</span><span class="vs">vs. Vormonat</span></div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label" style="font-size:11.5px;">Rohertrag n. Druckkosten
+            <span class="kpi-src" title="Quelle: Shopify"><svg viewBox="0 0 24 24" fill="none" stroke="#5E8E3E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.5 13.5a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1L6 7Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg></span>
+          </div>
+          <div class="kpi-value">13.260&nbsp;€</div>
+          <div class="kpi-trend"><span class="trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>+14,1&nbsp;%</span><span class="vs">Marge 54&nbsp;%</span></div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">Google Top-10-Keywords
+            <span class="kpi-src" title="Quelle: Search Console"><svg viewBox="0 0 24 24" fill="none" stroke="#4285F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
+          </div>
+          <div class="kpi-value">23</div>
+          <div class="kpi-trend"><span class="trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>+6</span><span class="vs">vs. Vormonat</span></div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">Sessions
+            <span class="kpi-src" title="Quelle: GA4"><svg viewBox="0 0 24 24" fill="none"><rect x="15.2" y="3" width="5.2" height="18" rx="2.6" fill="#F9AB00"/><rect x="9.4" y="9" width="5.2" height="12" rx="2.6" fill="#E37400"/><circle cx="6.2" cy="18.4" r="2.6" fill="#E37400"/></svg></span>
+          </div>
+          <div class="kpi-value">21.480</div>
+          <div class="kpi-trend"><span class="trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>+6,8&nbsp;%</span><span class="vs">vs. Vormonat</span></div>
+        </div>
+      </div>
+
+      <!-- ===== Charts ===== -->
+      <div class="charts-grid" style="margin-top:12px;">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Umsatz &amp; Sessions</span>
+            <span class="card-title-note">täglich, 30 Tage</span>
+            <span class="card-head-right">
+              <span class="legend"><i style="background:#22A05A"></i>Umsatz (Shopify)</span>
+              <span class="legend"><i style="background:#F9AB00"></i>Sessions (GA4)</span>
+            </span>
+          </div>
+          <div class="chart-body">
+            <svg viewBox="0 0 900 210" width="100%" preserveAspectRatio="none" aria-label="Umsatz- und Sessions-Verlauf über 30 Tage">
+              <line x1="0" y1="52.5" x2="900" y2="52.5" stroke="#F2F2F2" stroke-width="1"/>
+              <line x1="0" y1="105" x2="900" y2="105" stroke="#F2F2F2" stroke-width="1"/>
+              <line x1="0" y1="157.5" x2="900" y2="157.5" stroke="#F2F2F2" stroke-width="1"/>
+              <g fill="#22A05A">
+                <rect x="4"   y="122" width="18" height="88"  rx="3"/>
+                <rect x="34"  y="132" width="18" height="78"  rx="3"/>
+                <rect x="64"  y="108" width="18" height="102" rx="3"/>
+                <rect x="94"  y="140" width="18" height="70"  rx="3"/>
+                <rect x="124" y="96"  width="18" height="114" rx="3"/>
+                <rect x="154" y="118" width="18" height="92"  rx="3"/>
+                <rect x="184" y="84"  width="18" height="126" rx="3"/>
+                <rect x="214" y="126" width="18" height="84"  rx="3"/>
+                <rect x="244" y="102" width="18" height="108" rx="3"/>
+                <rect x="274" y="112" width="18" height="98"  rx="3"/>
+                <rect x="304" y="76"  width="18" height="134" rx="3"/>
+                <rect x="334" y="122" width="18" height="88"  rx="3"/>
+                <rect x="364" y="94"  width="18" height="116" rx="3"/>
+                <rect x="394" y="106" width="18" height="104" rx="3"/>
+                <rect x="424" y="68"  width="18" height="142" rx="3"/>
+                <rect x="454" y="116" width="18" height="94"  rx="3"/>
+                <rect x="484" y="88"  width="18" height="122" rx="3"/>
+                <rect x="514" y="98"  width="18" height="112" rx="3"/>
+                <rect x="544" y="60"  width="18" height="150" rx="3"/>
+                <rect x="574" y="90"  width="18" height="120" rx="3"/>
+                <rect x="604" y="74"  width="18" height="136" rx="3"/>
+                <rect x="634" y="100" width="18" height="110" rx="3"/>
+                <rect x="664" y="56"  width="18" height="154" rx="3"/>
+                <rect x="694" y="80"  width="18" height="130" rx="3"/>
+                <rect x="724" y="64"  width="18" height="146" rx="3"/>
+                <rect x="754" y="44"  width="18" height="166" rx="3"/>
+                <rect x="784" y="70"  width="18" height="140" rx="3"/>
+                <rect x="814" y="36"  width="18" height="174" rx="3"/>
+                <rect x="844" y="54"  width="18" height="156" rx="3"/>
+                <rect x="874" y="28"  width="18" height="182" rx="3"/>
+              </g>
+              <path d="M13 96 C 40 90, 55 102, 73 98 S 110 78, 133 84 S 170 100, 193 92 S 230 66, 253 72 S 290 92, 313 84 S 350 60, 373 66 S 410 84, 433 74 S 470 52, 493 58 S 530 76, 553 64 S 590 44, 613 52 S 650 70, 673 58 S 710 40, 733 48 S 770 60, 793 46 S 830 30, 853 38 S 875 44, 883 40"
+                fill="none" stroke="#F9AB00" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted-fg-2);font-family:var(--mono);padding-top:8px;">
+              <span>14.06.</span><span>21.06.</span><span>28.06.</span><span>05.07.</span><span>13.07.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Traffic-Quellen</span>
+            <span class="card-title-note">GA4 · Sessions</span>
+          </div>
+          <div class="traffic">
+            <div class="traffic-row">
+              <span class="traffic-name">Organische Suche</span>
+              <span class="traffic-bar"><i style="width:42%;background:#22A05A"></i></span>
+              <span class="traffic-val">9.020 · 42%</span>
+            </div>
+            <div class="traffic-row">
+              <span class="traffic-name">Google Ads</span>
+              <span class="traffic-bar"><i style="width:16%;background:#F9AB00"></i></span>
+              <span class="traffic-val">3.440 · 16%</span>
+            </div>
+            <div class="traffic-row">
+              <span class="traffic-name">Direkt</span>
+              <span class="traffic-bar"><i style="width:18%;background:#5E6AD2"></i></span>
+              <span class="traffic-val">3.865 · 18%</span>
+            </div>
+            <div class="traffic-row">
+              <span class="traffic-name">Social</span>
+              <span class="traffic-bar"><i style="width:15%;background:#D9739F"></i></span>
+              <span class="traffic-val">3.220 · 15%</span>
+            </div>
+            <div class="traffic-row">
+              <span class="traffic-name">E-Mail</span>
+              <span class="traffic-bar"><i style="width:9%;background:#8B8B8B"></i></span>
+              <span class="traffic-val">1.935 · 9%</span>
+            </div>
+          </div>
+          <div class="traffic-foot">
+            <span><b>21.480</b> Sessions gesamt</span>
+            <span>Organisch <b>+18&nbsp;%</b> dank SEO-Agent</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Design-Pipeline ===== -->
+      <div class="section-head">
+        <span class="section-title">Design-Pipeline</span>
+        <span class="section-sub">Recherche → Entwurf → Freigabe → Shop · betrieben von Ida &amp; Theo</span>
+        <span class="section-action">Design-Studio öffnen →</span>
+      </div>
+      <div class="card">
+        <div class="pipeline-grid">
+          <div class="pipeline-col">
+            <div class="stage-label">Trend-Radar</div>
+            <div class="stage-num">3</div>
+            <div class="stage-sub">heiße Nischen erkannt</div>
+            <span class="feed-flag warn" style="margin-top:9px;">„Retro Trail Running“ +140&nbsp;%</span>
+          </div>
+          <div class="pipeline-col">
+            <div class="stage-label">Entwürfe</div>
+            <div class="stage-num">4</div>
+            <div class="stage-sub">von Theo gerendert</div>
+            <div class="pipe-thumbs">
+              <div class="pipe-thumb" style="background:linear-gradient(135deg,#2C6E9E,#1F6B5A)">NT</div>
+              <div class="pipe-thumb" style="background:linear-gradient(135deg,#D97A3D,#B23A2E)">RT</div>
+              <div class="pipe-thumb" style="background:linear-gradient(135deg,#4E8F5C,#25502F)">WF</div>
+              <div class="pipe-thumb" style="background:linear-gradient(135deg,#6E5DB0,#3B3980)">NL</div>
+            </div>
+          </div>
+          <div class="pipeline-col">
+            <div class="stage-label">Wartet auf Freigabe</div>
+            <div class="stage-num">2</div>
+            <div class="stage-sub">„Nordic Trails“ · 24 Listings</div>
+            <div style="margin-top:9px;"><span class="task-ref">NOR-62</span></div>
+          </div>
+          <div class="pipeline-col">
+            <div class="stage-label">Diese Woche live</div>
+            <div class="stage-num">8</div>
+            <div class="stage-sub">Designs · 24 neue Listings</div>
+            <div class="trend up" style="margin-top:9px; font-size:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>+1.960&nbsp;€ Umsatz aus Neustarts</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Automatisiert im Hintergrund ===== -->
+      <div class="section-head">
+        <span class="section-title">Automatisiert im Hintergrund</span>
+        <span class="section-sub">Buchhaltung, SEO und Support laufen als Routinen</span>
+      </div>
+      <div class="trio-grid">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">SEO &amp; Ranking</span>
+            <span class="card-head-right"><span class="card-title-note">Search Console</span></span>
+          </div>
+          <div style="padding-top:6px;">
+            <div class="kw-row">
+              <div><div class="kw-name">bergmotiv t-shirt</div><div class="kw-vol">2.400 Suchanfragen/Monat</div></div>
+              <div class="kw-pos"><span class="pill working">18 → 7</span><span class="trend up">▲11</span></div>
+            </div>
+            <div class="kw-row">
+              <div><div class="kw-name">nordische poster</div><div class="kw-vol">3.600/Monat</div></div>
+              <div class="kw-pos"><span class="pill working">9 → 4</span><span class="trend up">▲5</span></div>
+            </div>
+            <div class="kw-row">
+              <div><div class="kw-name">wander hoodie herren</div><div class="kw-vol">1.900/Monat</div></div>
+              <div class="kw-pos"><span class="pill working">24 → 12</span><span class="trend up">▲12</span></div>
+            </div>
+          </div>
+          <div class="traffic-foot">
+            <span>12 Metas optimiert · 3 Blogartikel in Freigabe</span>
+            <span>Ø Position <b>8,4</b></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Buchhaltung · Juli</span>
+            <span class="card-head-right"><span class="card-title-note">Shopify · Printful · DATEV</span></span>
+          </div>
+          <div style="padding-top:6px;">
+            <div class="guv-row"><span>Einnahmen</span><span class="amt">24.640&nbsp;€</span></div>
+            <div class="guv-row"><span>Druckkosten (Printful)</span><span class="amt">−10.150&nbsp;€</span></div>
+            <div class="guv-row"><span>Gebühren (Shopify, PayPal)</span><span class="amt">−1.230&nbsp;€</span></div>
+            <div class="guv-row total"><span>Rohertrag</span><span class="amt">13.260&nbsp;€ · 54&nbsp;%</span></div>
+          </div>
+          <div class="chip-row">
+            <span class="feed-flag ok">187 Belege automatisch erfasst</span>
+            <span class="feed-flag ok">DATEV-Export Juni ✓</span>
+            <span class="feed-flag warn">USt-VA Juni: Entwurf bereit</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Kundenservice · 7 Tage</span>
+            <span class="card-head-right"><span class="card-title-note">Shopify Inbox · E-Mail</span></span>
+          </div>
+          <div style="padding:8px 16px 2px;">
+            <div class="stage-num">82&nbsp;%</div>
+            <div class="stage-sub">automatisch gelöst (31 von 38 Anfragen)</div>
+          </div>
+          <div style="padding-top:4px;">
+            <div class="guv-row"><span>Ø Erstantwort</span><span class="amt">4 Min.</span></div>
+            <div class="guv-row"><span>Zufriedenheit</span><span class="amt">4,8 / 5</span></div>
+          </div>
+          <div class="traffic" style="padding-top:6px;">
+            <div class="traffic-row">
+              <span class="traffic-name">Lieferstatus</span>
+              <span class="traffic-bar"><i style="width:54%;background:#8B8B8B"></i></span>
+              <span class="traffic-val">54%</span>
+            </div>
+            <div class="traffic-row">
+              <span class="traffic-name">Größentausch</span>
+              <span class="traffic-bar"><i style="width:22%;background:#5E6AD2"></i></span>
+              <span class="traffic-val">22%</span>
+            </div>
+            <div class="traffic-row">
+              <span class="traffic-name">Designwünsche</span>
+              <span class="traffic-bar"><i style="width:11%;background:#D9739F"></i></span>
+              <span class="traffic-val">11%</span>
+            </div>
+          </div>
+          <div class="traffic-foot">
+            <span>1 Eskalation offen: Druckqualität #1044 → Freigaben</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Team ===== -->
+      <div class="section-head">
+        <span class="section-title">Dein Commerce-Team</span>
+        <span class="section-sub">6 Agenten · einer je Aufgabenbereich</span>
+        <span class="section-action">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8.5 8.5 0 0 1-12.4 7.5L3 21l1.6-5.4A8.5 8.5 0 1 1 21 12Z"/></svg>
+          Otto im Chat fragen
+        </span>
+      </div>
+      <div class="team-grid">
+
+        <div class="card agent-card">
+          <div class="agent-top">
+            <span class="agent-avatar" style="background:var(--agent-otto)">OT</span>
+            <span class="agent-name">Otto</span>
+            <span class="agent-open"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </div>
+          <div class="agent-role">commerce/lead</div>
+          <span class="pill working"><span class="p-dot"></span>working</span>
+          <div class="agent-model">claude-fable-5<br>Claude Code</div>
+          <div class="agent-last">
+            Koordiniert Pipeline &amp; erstellt dein <b>Tagesbriefing</b>.
+            <div class="task-line"><span class="task-ref">NOR-52</span></div>
+          </div>
+        </div>
+
+        <div class="card agent-card">
+          <div class="agent-top">
+            <span class="agent-avatar" style="background:var(--agent-ida)">ID</span>
+            <span class="agent-name">Ida</span>
+            <span class="agent-open"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </div>
+          <div class="agent-role">commerce/design-research</div>
+          <span class="pill working"><span class="p-dot"></span>working</span>
+          <div class="agent-model">claude-sonnet-5<br>Claude Code</div>
+          <div class="agent-last">
+            Scannt <b>Google Trends, Etsy &amp; Pinterest</b> nach Nischen.
+            <div class="task-line"><span class="task-ref">NOR-61</span></div>
+          </div>
+        </div>
+
+        <div class="card agent-card">
+          <div class="agent-top">
+            <span class="agent-avatar" style="background:var(--agent-theo)">TH</span>
+            <span class="agent-name">Theo</span>
+            <span class="agent-open"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </div>
+          <div class="agent-role">commerce/design</div>
+          <span class="pill working"><span class="p-dot"></span>working</span>
+          <div class="agent-model">claude-sonnet-5<br>+ Bild-KI</div>
+          <div class="agent-last">
+            Rendert <b>4 Mockups</b> „Nordic Trails“ für Shirt &amp; Poster.
+            <div class="task-line"><span class="task-ref">NOR-62</span></div>
+          </div>
+        </div>
+
+        <div class="card agent-card">
+          <div class="agent-top">
+            <span class="agent-avatar" style="background:var(--agent-mia)">MI</span>
+            <span class="agent-name">Mia</span>
+            <span class="agent-open"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </div>
+          <div class="agent-role">commerce/seo</div>
+          <span class="pill idle"><span class="p-dot"></span>idle</span>
+          <div class="agent-model">claude-sonnet-5<br>Claude Code</div>
+          <div class="agent-last">
+            12 Metas live — <b>„nordische poster“ Platz 4</b>.
+            <div class="task-line"><span class="task-ref">NOR-55</span></div>
+          </div>
+        </div>
+
+        <div class="card agent-card">
+          <div class="agent-top">
+            <span class="agent-avatar" style="background:var(--agent-karla)">KA</span>
+            <span class="agent-name">Karla</span>
+            <span class="agent-open"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </div>
+          <div class="agent-role">commerce/buchhaltung</div>
+          <span class="pill scheduled"><span class="p-dot"></span>Routine 18:00</span>
+          <div class="agent-model">claude-haiku-4-5<br>Claude Code</div>
+          <div class="agent-last">
+            Verbucht Belege &amp; bereitet die <b>USt-VA</b> vor.
+            <div class="task-line"><span class="task-ref">NOR-49</span></div>
+          </div>
+        </div>
+
+        <div class="card agent-card">
+          <div class="agent-top">
+            <span class="agent-avatar" style="background:var(--agent-emma)">EM</span>
+            <span class="agent-name">Emma</span>
+            <span class="agent-open"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </div>
+          <div class="agent-role">commerce/support</div>
+          <span class="pill idle"><span class="p-dot"></span>idle</span>
+          <div class="agent-model">gemma-3 (lokal)<br>kostenfrei</div>
+          <div class="agent-last">
+            <b>82&nbsp;%</b> der Anfragen automatisch gelöst.
+            <div class="task-line"><span class="task-ref">NOR-51</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Feed + Approvals ===== -->
+      <div class="duo-grid" style="margin-top:26px;">
+        <div>
+          <div class="section-head" style="margin-top:0;">
+            <span class="section-title">Agent-Aktivität</span>
+            <span class="section-sub">heute</span>
+            <span class="section-action">Alles ansehen →</span>
+          </div>
+          <div class="card feed">
+            <div class="feed-row">
+              <span class="feed-avatar" style="background:var(--agent-ida)">ID</span>
+              <span class="feed-text"><span class="feed-flag warn">Trend</span><b>Ida</b> meldet: Nische <b>„Retro Trail Running“</b> +140&nbsp;% Suchinteresse (Google Trends, 90 Tage), geringe Konkurrenz auf Etsy — Design-Brief an Theo erstellt (<b>NOR-61</b>).</span>
+              <span class="feed-time">09:52</span>
+            </div>
+            <div class="feed-row">
+              <span class="feed-avatar" style="background:var(--agent-theo)">TH</span>
+              <span class="feed-text"><b>Theo</b> hat <b>4 Entwürfe „Nordic Trails“</b> gerendert — Mockups für Shirt, Hoodie &amp; Poster inkl. Listing-Texten → Freigaben.</span>
+              <span class="feed-time">09:30</span>
+            </div>
+            <div class="feed-row">
+              <span class="feed-avatar" style="background:var(--agent-mia)">MI</span>
+              <span class="feed-text"><b>Mia</b>: 12 Meta-Beschreibungen live — <b>„nordische poster“</b> von Platz 9 auf <b>4</b> gestiegen (Search Console).</span>
+              <span class="feed-time">08:47</span>
+            </div>
+            <div class="feed-row">
+              <span class="feed-avatar" style="background:var(--agent-emma)">EM</span>
+              <span class="feed-text"><b>Emma</b> hat 9 Anfragen beantwortet (7× Lieferstatus automatisch via Tracking), 1 eskaliert: <b>Druckqualität #1044</b>.</span>
+              <span class="feed-time">08:20</span>
+            </div>
+            <div class="feed-row">
+              <span class="feed-avatar" style="background:var(--agent-karla)">KA</span>
+              <span class="feed-text"><b>Karla</b> hat 14 Printful-Belege verbucht, Payout <b>1.890&nbsp;€</b> abgeglichen — USt-VA Juni als Entwurf fertig.</span>
+              <span class="feed-time">07:45</span>
+            </div>
+            <div class="feed-row">
+              <span class="feed-avatar" style="background:var(--agent-otto)">OT</span>
+              <span class="feed-text"><span class="feed-flag ok">Routine</span><b>Otto</b> hat dein <b>Tagesbriefing</b> erstellt: Umsatz gestern 912&nbsp;€ (27 Bestellungen), 4 Punkte brauchen dich → Inbox.</span>
+              <span class="feed-time">07:30</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-head" style="margin-top:0;">
+            <span class="section-title">Wartet auf deine Freigabe</span>
+            <span class="section-action"><span class="approvals-count">4 offen</span></span>
+          </div>
+          <div class="card">
+            <div class="approval">
+              <div class="approval-title">4 Designs „Nordic Trails“ live stellen <span class="cat-chip">Shopify · Listings</span></div>
+              <div class="approval-desc">24 Listings (Shirt, Hoodie, Poster) mit Texten, Preisen und Mockups — geht nach Freigabe automatisch in den Shop.</div>
+              <div class="approval-foot">
+                <span class="approval-by"><span class="avatar" style="background:var(--agent-theo)">TH</span>Theo · vor 1 Std.</span>
+                <button class="btn ghost sm">Ansehen</button>
+                <button class="btn primary sm">Freigeben</button>
+              </div>
+            </div>
+            <div class="approval">
+              <div class="approval-title">USt-Voranmeldung Juni übermitteln <span class="cat-chip">Buchhaltung · ELSTER</span></div>
+              <div class="approval-desc">Zahllast 2.412&nbsp;€ — 187/187 Belege zugeordnet, von Karla vorbereitet und gegen Shopify-Payouts geprüft.</div>
+              <div class="approval-foot">
+                <span class="approval-by"><span class="avatar" style="background:var(--agent-karla)">KA</span>Karla · vor 2 Std.</span>
+                <button class="btn ghost sm">Ansehen</button>
+                <button class="btn primary sm">Freigeben</button>
+              </div>
+            </div>
+            <div class="approval">
+              <div class="approval-title">Blogartikel „Die 10 schönsten Fernwanderwege“ veröffentlichen <span class="cat-chip">SEO · Content</span></div>
+              <div class="approval-desc">Zielkeyword „wanderrouten poster“ (1.300/Monat) — intern auf 6 Produkte verlinkt, Meta &amp; Bilder fertig.</div>
+              <div class="approval-foot">
+                <span class="approval-by"><span class="avatar" style="background:var(--agent-mia)">MI</span>Mia · vor 4 Std.</span>
+                <button class="btn ghost sm">Ansehen</button>
+                <button class="btn primary sm">Freigeben</button>
+              </div>
+            </div>
+            <div class="approval">
+              <div class="approval-title">Kulanz-Neudruck für Bestellung #1044 <span class="cat-chip">Support</span></div>
+              <div class="approval-desc">Reklamation Farbabweichung — Neudruck kostet 12,40&nbsp;€ (Printful), Kundin wartet seit gestern.</div>
+              <div class="approval-foot">
+                <span class="approval-by"><span class="avatar" style="background:var(--agent-emma)">EM</span>Emma · vor 5 Std.</span>
+                <button class="btn ghost sm">Ansehen</button>
+                <button class="btn primary sm">Freigeben</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Design-Performance ===== -->
+      <div class="section-head">
+        <span class="section-title">Design-Performance</span>
+        <span class="section-sub">Bestseller &amp; Neustarts · von Ida täglich bewertet</span>
+        <span class="section-action">Alle 87 Designs →</span>
+      </div>
+      <div class="card" style="overflow:hidden;">
+        <table class="products">
+          <tr>
+            <th style="width:30%">Design</th>
+            <th style="width:16%">Listings</th>
+            <th style="width:13%">30-T.-Umsatz</th>
+            <th style="width:9%">Trend</th>
+            <th>Agent-Hinweis</th>
+          </tr>
+          <tr>
+            <td><span class="prod-cell"><span class="prod-thumb" style="background:linear-gradient(135deg,#2C6E9E,#1F6B5A);color:#fff">FL</span><span><span class="prod-name">Fjord Lines</span><br><span class="prod-sku">NW-DSN-012</span></span></span></td>
+            <td>6 Listings</td>
+            <td class="rev">4.320&nbsp;€</td>
+            <td><svg class="spark" width="46" height="16" viewBox="0 0 46 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 13 Q10 12 15 9 T30 6 T45 2"/></svg></td>
+            <td><span class="agent-hint"><span class="avatar" style="background:var(--agent-ida)">ID</span>Trend stabil — Farbvariante „Sand“ in NOR-63</span></td>
+          </tr>
+          <tr>
+            <td><span class="prod-cell"><span class="prod-thumb" style="background:linear-gradient(135deg,#4E8F5C,#25502F);color:#fff">WF</span><span><span class="prod-name">Wild &amp; Frei</span><br><span class="prod-sku">NW-DSN-007</span></span></span></td>
+            <td>8 Listings</td>
+            <td class="rev">3.780&nbsp;€</td>
+            <td><svg class="spark" width="46" height="16" viewBox="0 0 46 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12 Q12 11 18 8 T32 7 T45 4"/></svg></td>
+            <td><span class="agent-hint"><span class="avatar" style="background:var(--agent-mia)">MI</span>rankt Platz 7 für „wander t-shirt spruch“</span></td>
+          </tr>
+          <tr>
+            <td><span class="prod-cell"><span class="prod-thumb" style="background:linear-gradient(135deg,#6E5DB0,#3B3980);color:#fff">NL</span><span><span class="prod-name">Nordlicht Serie</span><br><span class="prod-sku">NW-DSN-019</span></span></span></td>
+            <td>3 Listings</td>
+            <td class="rev">2.940&nbsp;€</td>
+            <td><svg class="spark flat" width="46" height="16" viewBox="0 0 46 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 9 Q12 8 20 9 T34 8 T45 8"/></svg></td>
+            <td><span class="agent-hint"><span class="avatar" style="background:var(--agent-theo)">TH</span>3er-Poster-Bundle als Entwurf fertig</span></td>
+          </tr>
+          <tr>
+            <td><span class="prod-cell"><span class="prod-thumb" style="background:linear-gradient(135deg,#D97A3D,#B23A2E);color:#fff">RT</span><span><span class="prod-name">Retro Trail</span> <span class="feed-flag ok">NEU</span><br><span class="prod-sku">NW-DSN-021</span></span></span></td>
+            <td>4 Listings</td>
+            <td class="rev">1.960&nbsp;€</td>
+            <td><svg class="spark" width="46" height="16" viewBox="0 0 46 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 13 Q12 13 20 10 T34 7 T45 3"/></svg></td>
+            <td><span class="agent-hint"><span class="avatar" style="background:var(--agent-ida)">ID</span>aus Trend-Radar vom 02.07. — bester Start bisher</span></td>
+          </tr>
+          <tr>
+            <td><span class="prod-cell"><span class="prod-thumb" style="background:linear-gradient(135deg,#8A6D4B,#5C4630);color:#fff">BZ</span><span><span class="prod-name">Bergziege Retro</span><br><span class="prod-sku">NW-DSN-003</span></span></span></td>
+            <td>5 Listings</td>
+            <td class="rev">1.480&nbsp;€</td>
+            <td><svg class="spark down" width="46" height="16" viewBox="0 0 46 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 4 Q12 5 20 8 T34 10 T45 13"/></svg></td>
+            <td><span class="agent-hint"><span class="avatar" style="background:var(--agent-otto)">OT</span>Nische kühlt ab — auslaufen lassen, kein Re-Design</span></td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="page-foot">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.5 13.5a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1L6 7Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg>
+        Commerce-Modul · Plugin für das Agentic AIOS (Paperclip) · Datenquellen: Shopify Admin API · GA4 Data API · Search Console API · Printful API · Alle Zahlen: Demo-Daten
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
