@@ -154,6 +154,21 @@
       ]
     },
     {
+      id: 'nele', name: 'Nele', initials: 'NE', color: 'var(--agent-nele)',
+      role: 'commerce/social', title: 'Social Media', status: 'scheduled',
+      statusLabel: 'Plan 11:00',
+      model: 'claude-sonnet-5', runtime: '+ Bild-KI', access: 'Firmen-Abo',
+      costMonth: 6.80, hoursSaved: 12,
+      task: 'NOR-66', now: 'Plant die Woche für Pinterest, Instagram & TikTok.',
+      skills: ['Beiträge aus vorhandenen Designs bauen', 'Je Kanal eigene Bildformate & Texte', 'Beste Zeiten aus der Reichweite lernen', 'Kommentare beantworten & Fragen weiterleiten'],
+      permissions: ['Kanal-Statistiken lesen', 'Beiträge planen & Entwürfe anlegen', 'Veröffentlichen nur nach deiner Freigabe'],
+      runs: [
+        { at: '11:00', what: 'Wochenplan erstellt', result: '9 Beiträge zur Freigabe', tokens: '48k' },
+        { at: 'Gestern 11:00', what: 'Reichweiten-Auswertung', result: 'Pinterest 4× stärker als Instagram', tokens: '14k' },
+        { at: 'Di 15:30', what: '4 Pins „Fjord Lines“', result: '12.400 Impressionen, 340 Klicks', tokens: '31k' }
+      ]
+    },
+    {
       id: 'karla', name: 'Karla', initials: 'KA', color: 'var(--agent-karla)',
       role: 'commerce/buchhaltung', title: 'Buchhaltung', status: 'scheduled',
       statusLabel: 'Routine 18:00',
@@ -404,13 +419,29 @@
       task: 'NOR-51', kind: 'support', ticketId: 'tk1',
       detail: 'Kundin schickte ein Foto: der Terrakotta-Ton des Drucks wirkt deutlich blasser als in der Vorschau. Emma hat den Druckauftrag geprüft — Printful hat ein anderes Farbprofil verwendet als bei der Erstauflage. Emma stuft die Reklamation als berechtigt ein, darf Erstattungen und Neudrucke aber nicht selbst auslösen.',
       effect: 'Nach Freigabe: Neudruck wird bei Printful ausgelöst, Emma informiert die Kundin.',
-      impact: { revenue: -12.40, note: 'Kosten des Neudrucks' } }
+      impact: { revenue: -12.40, note: 'Kosten des Neudrucks' } },
+    { id: 'a6', title: 'Ersatzsendung für Bestellung #1047', chip: 'Support · Versand', by: 'emma', ago: 'vor 3 Std.',
+      desc: 'Sendung steht seit 6 Tagen im Depot — Ersatz kostet 18,60 €, der Kunde wartet.',
+      task: 'NOR-51', kind: 'support', ticketId: 'tk2',
+      detail: 'Das Tracking zeigt seit dem 07.07. keinen Scan mehr. Emma hat die DHL-Nachforschung angestoßen, die dauert erfahrungsgemäß 5–10 Werktage. Sie schlägt vor, nicht darauf zu warten, sondern sofort neu zu schicken — der Kunde hat zusätzlich eine 1-Stern-Bewertung hinterlassen.',
+      effect: 'Nach Freigabe: Ersatz geht mit Priorität raus, Emma antwortet dem Kunden und auf seine Bewertung.',
+      impact: { revenue: -18.60, note: 'Kosten der Ersatzsendung — die Bewertung kostet mehr' } },
+    { id: 'a7', title: 'Social-Wochenplan: 9 Beiträge freigeben', chip: 'Social · Pinterest, Instagram, TikTok', by: 'nele', ago: 'vor 30 Min.',
+      desc: 'Nele hat die Woche geplant: 5 Pins, 3 Instagram-Beiträge, 1 TikTok — alle aus vorhandenen Designs.',
+      task: 'NOR-66', kind: 'social',
+      detail: 'Der Plan folgt der Reichweite der letzten 30 Tage: Pinterest bekommt das meiste Gewicht, weil dort ein Beitrag monatelang weiterläuft. Das Wintermotiv „Polarstern“ geht bewusst schon im Juli raus — auf Pinterest wird der Dezember im Sommer geplant.',
+      effect: 'Nach Freigabe: Die Beiträge gehen zu den geplanten Zeiten raus, Nele meldet die Reichweite nach 48 Stunden.',
+      impact: { revenue: 640, note: 'erwarteter Umsatz in 30 Tagen — gerechnet aus der Klickrate vergleichbarer Beiträge' } }
   ];
 
   /* --- Aktivitäts-Feed ---------------------------------------------------- */
   var feed = [
     { id: 'f1', agent: 'ida', time: '09:52', flag: { type: 'warn', text: 'Trend' }, task: 'NOR-61',
       text: '<b>Ida</b> meldet: Nische <b>„Retro Trail Running“</b> +140 % Suchinteresse (Google Trends, 90 Tage), geringe Konkurrenz auf Etsy — Design-Brief an Theo erstellt.' },
+    { id: 'f1b', agent: 'nele', time: '11:00', flag: { type: 'warn', text: 'Plan' }, task: 'NOR-66',
+      text: '<b>Nele</b> hat den <b>Social-Wochenplan</b> fertig: 9 Beiträge, Schwerpunkt Pinterest — liegt bei dir zur Freigabe.' },
+    { id: 'f1c', agent: 'emma', time: '10:20', flag: { type: 'warn', text: 'Bewertung' }, task: 'NOR-51',
+      text: '<b>Emma</b>: neue <b>1-Stern-Bewertung</b> zu Bestellung #1047 — derselbe Kunde, dessen Paket im Depot hängt. Antwortentwurf liegt bereit.' },
     { id: 'f2', agent: 'theo', time: '09:30', flag: null, task: 'NOR-62',
       text: '<b>Theo</b> hat <b>4 Entwürfe „Nordic Trails“</b> gerendert — Mockups für Shirt, Hoodie &amp; Poster inkl. Listing-Texten → Freigaben.' },
     { id: 'f3', agent: 'mia', time: '08:47', flag: null, task: 'NOR-55',
@@ -427,6 +458,10 @@
       text: '<b>Theo</b> hat 2 Varianten <b>„Fjord Lines / Sand“</b> gerendert — Ida hatte sie aus dem Trend-Radar vorgeschlagen.' },
     { id: 'f9', agent: 'emma', time: 'Gestern 17:40', flag: null, task: 'NOR-51',
       text: '<b>Emma</b> hat 11 Anfragen beantwortet, alle gelöst — Ø Erstantwort 3 Min.' },
+    { id: 'f9b', agent: 'ida', time: 'Gestern 12:05', flag: { type: 'warn', text: 'Muster' }, task: 'NOR-65',
+      text: '<b>Ida</b> hat die kritischen Bewertungen durchgesehen: nur <b>2 von 7</b> betreffen einen echten Fehler (Druck, Versand) — der Rest sind Erwartungen an Pflege und Motivgröße. Vorschlag an Theo: Hinweise auf der Produktseite deutlicher setzen.' },
+    { id: 'f9c', agent: 'nele', time: 'Gestern 11:00', flag: null, task: 'NOR-66',
+      text: '<b>Nele</b>: Reichweiten-Auswertung — ein <b>Pin bringt viermal so viele Klicks</b> wie ein Instagram-Bild und läuft Monate weiter. Sie verschiebt Gewicht auf Pinterest.' },
     { id: 'f10', agent: 'ida', time: 'Gestern 14:20', flag: null, task: 'NOR-64',
       text: '<b>Ida</b> hat <b>„Bergziege Retro“</b> nachbewertet: Suchinteresse −31 % seit Mai — Empfehlung: auslaufen lassen.' },
     { id: 'f11', agent: 'mia', time: 'Gestern 08:45', flag: null, task: 'NOR-55',
@@ -442,7 +477,11 @@
     { agent: 'emma', flag: null, task: 'NOR-51',
       text: '<b>Emma</b> hat 2 neue Anfragen bearbeitet (Lieferstatus), beide automatisch gelöst.' },
     { agent: 'ida', flag: null, task: 'NOR-61',
-      text: '<b>Ida</b> beobachtet <b>„Slow Hiking“</b>: Pinterest-Pins +9 % in 24 Std. — noch unter der Einstiegsschwelle.' }
+      text: '<b>Ida</b> beobachtet <b>„Slow Hiking“</b>: Pinterest-Pins +9 % in 24 Std. — noch unter der Einstiegsschwelle.' },
+    { agent: 'nele', flag: null, task: 'NOR-66',
+      text: '<b>Nele</b>: der Pin <b>„Fjord Lines — Papierstruktur“</b> hat in 2 Stunden 1.240 Impressionen — überdurchschnittlich für die Uhrzeit.' },
+    { agent: 'emma', flag: { type: 'ok', text: 'Bewertung' }, task: 'NOR-51',
+      text: '<b>Emma</b> hat eine neue <b>5-Sterne-Bewertung</b> zu „Nordlicht“ beantwortet — Standardfall, ohne dich.' }
   ];
 
   /* --- Kundenservice ------------------------------------------------------ */
@@ -577,6 +616,176 @@
     });
   })();
 
+  /* --- Social ------------------------------------------------------------- */
+  // Anteile statt absoluter Zahlen: die Kanäle teilen sich den Social-Traffic
+  // (15 % laut D.traffic) — dadurch rechnet auch der Zeitraum-Schalter mit.
+  var socialChannels = [
+    { id: 'pinterest', name: 'Pinterest', color: '#C8232C', share: 55, revShare: 62,
+      followers: 4820, growth: 312, posts30: 26,
+      role: 'Der Kanal für Poster — Pins laufen monatelang weiter.',
+      note: 'Ein Pin bringt im Schnitt 8 Monate lang Klicks. Deshalb liegt hier der Schwerpunkt.' },
+    { id: 'instagram', name: 'Instagram', color: '#C13584', share: 30, revShare: 29,
+      followers: 2140, growth: 96, posts30: 14,
+      role: 'Textil und Gesicht der Marke — Reels vor Bildern.',
+      note: 'Reels erreichen hier das Vierfache eines Bildbeitrags, kosten Nele aber auch mehr Arbeit.' },
+    { id: 'tiktok', name: 'TikTok', color: '#2B2B2B', share: 15, revShare: 9,
+      followers: 610, growth: 184, posts30: 7,
+      role: 'Jung, wächst schnell, kauft (noch) wenig.',
+      note: 'Stärkstes Wachstum, schwächster Umsatz — Nele hält es klein, bis sich das dreht.' }
+  ];
+
+  var socialPosts = [
+    { id: 'sp1', channel: 'pinterest', design: 'd12', kind: 'Pin', when: 'Di 15:30', status: 'live',
+      title: 'Fjord Lines — Poster A2 im Wohnzimmer',
+      text: 'Ruhige Linien, warmes Licht: „Fjord Lines“ über dem Sofa. Gedruckt auf 200 g Naturpapier.',
+      reach: 12400, clicks: 340, orders: 11, revenue: 380 },
+    { id: 'sp2', channel: 'pinterest', design: 'd19', kind: 'Pin', when: 'Mo 09:15', status: 'live',
+      title: 'Nordlicht Serie — 3er-Wand',
+      text: 'Drei Poster, eine Wand, ein Abend Arbeit. Die „Nordlicht“-Serie als Triptychon.',
+      reach: 9800, clicks: 262, orders: 8, revenue: 290 },
+    { id: 'sp3', channel: 'instagram', design: 'd21', kind: 'Reel', when: 'Mi 18:00', status: 'live',
+      title: 'Retro Trail — vom Entwurf zum Shirt',
+      text: '15 Sekunden: Idas Trendfund, Theos Entwurf, der fertige Druck. So entsteht ein Motiv bei uns.',
+      reach: 18600, clicks: 410, orders: 9, revenue: 268 },
+    { id: 'sp4', channel: 'instagram', design: 'd07', kind: 'Bild', when: 'Di 12:00', status: 'live',
+      title: 'Wild & Frei — unterwegs',
+      text: 'Bio-Baumwolle, unisex, für Tage ohne Empfang.',
+      reach: 5200, clicks: 118, orders: 4, revenue: 122 },
+    { id: 'sp5', channel: 'tiktok', design: 'd21', kind: 'Video', when: 'Do 17:20', status: 'live',
+      title: 'Warum 1984 gerade zurückkommt',
+      text: 'Retro-Laufsport ist überall — wir zeigen, woher die Farben kommen.',
+      reach: 24100, clicks: 196, orders: 3, revenue: 89 },
+    { id: 'sp6', channel: 'pinterest', design: 'd17', kind: 'Pin', when: 'Fr 08:00', status: 'live',
+      title: 'Polarstern — Poster für den Winter',
+      text: 'Klare Nacht, klare Linien. Ab September das meistgesuchte Motiv.',
+      reach: 7300, clicks: 184, orders: 5, revenue: 178 },
+    { id: 'sp7', channel: 'pinterest', design: 'd15', kind: 'Pin', when: 'Sa 10:40', status: 'live',
+      title: 'Küstenwind — Beutel & Poster',
+      text: 'Zwei Formate, ein Motiv. Für alle, die das Meer im Kopf behalten wollen.',
+      reach: 6100, clicks: 143, orders: 4, revenue: 131 },
+    { id: 'sp8', channel: 'instagram', design: 'd12', kind: 'Story', when: 'Heute 09:00', status: 'live',
+      title: 'Frage an euch: Sand oder Petrol?',
+      text: 'Wir überlegen eine zweite Farbe für „Fjord Lines“. Stimmt ab.',
+      reach: 3400, clicks: 88, orders: 2, revenue: 64 }
+  ];
+
+  // Neles Wochenplan — wartet als Ganzes auf Freigabe (Approval a7)
+  var socialPlan = [
+    { id: 'pl1', channel: 'pinterest', design: 'd12', kind: 'Pin', when: 'Morgen 08:00',
+      title: 'Fjord Lines — Detailaufnahme Papierstruktur',
+      text: 'Nah dran: 200 g Naturpapier, sichtbare Faser, kein Glanz. So fühlt sich „Fjord Lines“ an.' },
+    { id: 'pl2', channel: 'pinterest', design: 'd19', kind: 'Pin', when: 'Morgen 15:00',
+      title: 'Nordlicht — Poster über dem Bett',
+      text: 'Dunkle Wand, helles Motiv. „Nordlicht“ funktioniert genau dort am besten.' },
+    { id: 'pl3', channel: 'instagram', design: 'd21', kind: 'Reel', when: 'Do 18:00',
+      title: 'Retro Trail — 3 Farben, 3 Stimmungen',
+      text: 'Terrakotta, Senf, Creme. Welche würdest du tragen?' },
+    { id: 'pl4', channel: 'pinterest', design: 'd17', kind: 'Pin', when: 'Fr 08:00',
+      title: 'Polarstern — Winterthema früh besetzen',
+      text: 'Pinterest plant im Juli den Dezember. Deshalb geht das Wintermotiv jetzt raus.' },
+    { id: 'pl5', channel: 'instagram', design: 'd07', kind: 'Bild', when: 'Fr 12:00',
+      title: 'Wild & Frei — Kundenfoto',
+      text: 'Von Marie aus Kiel, mit ihrer Erlaubnis. Danke dafür.' },
+    { id: 'pl6', channel: 'tiktok', design: 'd23', kind: 'Video', when: 'Sa 17:00',
+      title: 'Gipfelstürmer — der Entwurf in 20 Sekunden',
+      text: 'Von der ersten Linie bis zum fertigen Druck.' },
+    { id: 'pl7', channel: 'pinterest', design: 'd05', kind: 'Pin', when: 'So 10:00',
+      title: 'Salzluft — minimalistisch wohnen',
+      text: 'Weniger Motiv, mehr Wand. Für ruhige Räume.' },
+    { id: 'pl8', channel: 'instagram', design: 'd12', kind: 'Story', when: 'So 19:00',
+      title: 'Ergebnis der Farb-Umfrage',
+      text: 'Ihr habt entschieden — wir zeigen, was daraus wird.' },
+    { id: 'pl9', channel: 'pinterest', design: 'd09', kind: 'Pin', when: 'Mo 08:00',
+      title: 'Waldläufer — Hoodie im Herbstlicht',
+      text: 'Der ruhigste Entwurf im Sortiment, jetzt in seiner Jahreszeit.' }
+  ];
+
+  /* --- Bewertungen --------------------------------------------------------- */
+  // „Rating“ ist etwas anderes als „Ranking“: hier zählen Sterne, nicht Positionen.
+  var reviews = [
+    { id: 'rv1', design: 'd21', product: 'Retro Trail Shirt „Bahnen“', stars: 2, author: 'Lena B.',
+      when: 'Gestern 16:40', title: 'Farbe weicht deutlich ab', source: 'Shopify', ticket: 'tk1', status: 'open',
+      text: 'Das Motiv ist schön, aber der orange Ton ist viel blasser als auf den Produktbildern — fast rosa. Schade, ich hatte mich gefreut.',
+      reply: null,
+      draft: 'Hallo Lena,\n\nSie haben recht, und der Fehler liegt bei uns: Ihr Shirt ist mit einem falschen Farbprofil gelaufen. Wir drucken es neu und schicken es Ihnen kostenlos zu.\n\nDanke, dass Sie das Foto geschickt haben — dadurch haben wir den Fehler beim Druckpartner gefunden und für alle künftigen Drucke korrigiert.\n\nViele Grüße\nNordwind Studio' },
+    { id: 'rv2', design: 'd12', product: 'Fjord Lines Poster A2', stars: 1, author: 'Jonas V.',
+      when: 'Heute 08:30', title: 'Nie angekommen', source: 'Shopify', ticket: 'tk2', status: 'open',
+      text: 'Seit sechs Tagen im Zustelldepot, keine Bewegung, keine Info. Für den Preis erwarte ich mehr.',
+      reply: null,
+      draft: 'Hallo Jonas,\n\ndie Sendung hängt seit sechs Tagen im Depot fest — dafür gibt es keine gute Erklärung, und der Ärger ist berechtigt.\n\nWir haben Ihre Bestellung heute neu und mit Priorität rausgeschickt, versandkostenfrei. Um die verschollene Sendung kümmern wir uns selbst.\n\nViele Grüße\nNordwind Studio' },
+    { id: 'rv3', design: 'd07', product: 'Wild & Frei Hoodie', stars: 2, author: 'Sarah K.',
+      when: '09.07. 11:20', title: 'Druck nach dem Waschen matt', source: 'Shopify', ticket: null, status: 'open',
+      text: 'Nach zweimal Waschen bei 40 Grad wirkt der Druck stumpf. Beim Shirt meiner Schwester ist das nicht passiert.',
+      reply: null,
+      draft: 'Hallo Sarah,\n\n40 Grad sind für den Druck schon grenzwertig — empfohlen sind 30 Grad auf links und kein Trockner. Das steht bei uns bisher nur klein auf der Produktseite, das ändern wir.\n\nWeil der Hinweis bei Ihnen untergegangen ist, schicken wir Ihnen einen neuen Hoodie. Behalten Sie den alten gern als Arbeitsstück.\n\nViele Grüße\nNordwind Studio' },
+    { id: 'rv4', design: 'd12', product: 'Fjord Lines Poster A2', stars: 5, author: 'Miriam T.',
+      when: 'Heute 07:10', title: 'Genau wie erhofft', source: 'Shopify', ticket: null, status: 'answered',
+      text: 'Die Farben sind gedeckt und ruhig, das Papier fühlt sich hochwertig an. Hängt jetzt im Flur und wird jedes Mal kommentiert.',
+      reply: { text: 'Vielen Dank, Miriam! Das Papier war eine bewusste Entscheidung — matt statt glänzend, damit die Linien ruhig bleiben. Schön, dass es ankommt.', at: 'Heute 07:34' }, draft: null },
+    { id: 'rv5', design: 'd19', product: 'Nordlicht Poster A3', stars: 5, author: 'Timo R.',
+      when: 'Gestern 20:15', title: 'Drittes Poster bei euch', source: 'Shopify', ticket: null, status: 'answered',
+      text: 'Sammle die Serie langsam. Versand war schnell, Verpackung stabil in der Rolle, nichts geknickt.',
+      reply: { text: 'Danke, Timo! Die Rolle ist bewusst eine Nummer dicker als nötig — geknickte Poster sind der häufigste Ärger im Versand. Freut uns, dass die Serie wächst.', at: 'Gestern 20:48' }, draft: null },
+    { id: 'rv6', design: 'd21', product: 'Retro Trail Shirt „Bahnen“', stars: 5, author: 'Nils P.',
+      when: '11.07. 14:05', title: 'Endlich mal ein Laufshirt ohne Logo-Schlacht', source: 'Shopify', ticket: null, status: 'answered',
+      text: 'Sitzt gut, Motiv ist zurückhaltend, Baumwolle angenehm. Genau das habe ich lange gesucht.',
+      reply: { text: 'Danke, Nils! Genau der Gedanke stand hinter dem Motiv — Retro-Laufsport ohne Marken-Getöse. Viel Freude damit.', at: '11.07. 14:52' }, draft: null },
+    { id: 'rv7', design: 'd15', product: 'Küstenwind Beutel', stars: 4, author: 'Anke M.',
+      when: '10.07. 09:40', title: 'Schön, Versand etwas lang', source: 'Shopify', ticket: null, status: 'answered',
+      text: 'Der Beutel ist toll bedruckt und stabil. Acht Tage bis zur Lieferung fand ich aber lang.',
+      reply: { text: 'Danke, Anke! Wir drucken erst nach Bestellung — das spart Lagerware, kostet aber ein paar Tage. Acht waren dennoch zu viel, wir schauen uns die Laufzeit beim Druckpartner an.', at: '10.07. 10:12' }, draft: null },
+    { id: 'rv8', design: 'd03', product: 'Bergziege Retro Tasse', stars: 3, author: 'Kai H.',
+      when: '08.07. 18:25', title: 'Motiv kleiner als gedacht', source: 'Shopify', ticket: null, status: 'answered',
+      text: 'Auf den Bildern wirkt die Bergziege größer. Qualität ist ok, aber ich hatte mir mehr Präsenz vorgestellt.',
+      reply: { text: 'Danke für den Hinweis, Kai. Wir haben daraufhin ein Foto mit Größenvergleich zur Produktseite ergänzt — das war vorher nicht eindeutig genug.', at: '08.07. 19:03' }, draft: null },
+    { id: 'rv9', design: 'd17', product: 'Polarstern Poster A2', stars: 5, author: 'Helena W.',
+      when: '07.07. 12:30', title: 'Geschenk, das gesessen hat', source: 'Shopify', ticket: null, status: 'answered',
+      text: 'Für meinen Vater gekauft, der seit Jahren von Lappland erzählt. Er hat es sofort aufgehängt.',
+      reply: { text: 'Das freut uns sehr, Helena — danke fürs Erzählen. Grüße an Ihren Vater.', at: '07.07. 13:15' }, draft: null }
+  ];
+
+  // Der Rest der 79 Bewertungen — kurz, echt formuliert, aus Vorlagen erzeugt.
+  var reviewTemplates = [
+    { s: 5, t: 'Sehr zufrieden', x: 'Druck ist sauber, Farben wie abgebildet. Gerne wieder.' },
+    { s: 5, t: 'Schnell und schön', x: 'Nach vier Tagen da, tadellos verpackt. Motiv wirkt in echt noch besser.' },
+    { s: 5, t: 'Tolle Qualität', x: 'Der Stoff ist dicker als bei anderen Shops, das merkt man sofort.' },
+    { s: 5, t: 'Genau mein Stil', x: 'Zurückhaltend, gut gedruckt, keine grellen Farben. Passt.' },
+    { s: 5, t: 'Zweite Bestellung', x: 'Beim ersten Mal überzeugt, deshalb gleich nachbestellt.' },
+    { s: 5, t: 'Als Geschenk perfekt', x: 'Kam pünktlich vor dem Geburtstag an und ist gut angekommen.' },
+    { s: 4, t: 'Gut, kleine Abzüge', x: 'Alles in Ordnung — der Karton war leicht angestoßen, Inhalt aber heil.' },
+    { s: 4, t: 'Schönes Motiv', x: 'Gefällt mir gut. Etwas kräftigere Farben hätte ich noch schöner gefunden.' },
+    { s: 4, t: 'Passt', x: 'Größe stimmt, Druck sitzt. Für den Preis in Ordnung.' },
+    { s: 3, t: 'Solide, nicht mehr', x: 'Nichts falsch gemacht, aber auch nichts, was mich begeistert hätte.' }
+  ];
+
+  (function buildRestReviews() {
+    var r = prng(730915);
+    // Zielverteilung minus die handgeschriebenen: 54× 5★, 13× 4★, 3× 3★
+    var plan = [];
+    for (var i = 0; i < 54; i++) plan.push(5);
+    for (var j = 0; j < 13; j++) plan.push(4);
+    for (var k = 0; k < 3; k++) plan.push(3);
+    var designPool = designs.filter(function (d) { return d.status !== 'paused'; });
+    plan.forEach(function (stars, idx) {
+      var pool = reviewTemplates.filter(function (t) { return t.s === stars; });
+      var tpl = pool[Math.floor(r() * pool.length)];
+      var d = designPool[Math.floor(r() * designPool.length)];
+      var fn = firstNames[Math.floor(r() * firstNames.length)];
+      var ln = lastNames[Math.floor(r() * lastNames.length)];
+      var back = Math.floor(r() * 28);
+      var dt = addDays(TODAY, -back);
+      var stamp = (back === 0 ? 'Heute ' : back === 1 ? 'Gestern ' :
+        String(dt.getDate()).padStart(2, '0') + '.' + String(dt.getMonth() + 1).padStart(2, '0') + '. ') +
+        String(8 + Math.floor(r() * 12)).padStart(2, '0') + ':' + String(Math.floor(r() * 60)).padStart(2, '0');
+      reviews.push({
+        id: 'rg' + idx, design: d.id, product: d.name, stars: stars,
+        author: fn + ' ' + ln.charAt(0) + '.', when: stamp, title: tpl.t,
+        source: 'Shopify', ticket: null, status: 'answered', text: tpl.x,
+        reply: { text: 'Danke für die Bewertung! Freut uns, dass es passt.', at: stamp }, draft: null
+      });
+    });
+  })();
+
   /* --- Connectors --------------------------------------------------------- */
   var connectors = [
     { id: 'shopify', name: 'Shopify', label: 'Shopify', status: 'ok', shop: 'nordwind-studio.myshopify.com',
@@ -590,7 +799,19 @@
       writes: 'Nur lesend. Neue URLs meldet Mia zur Indexierung an.' },
     { id: 'printful', name: 'Printful', label: 'Printful', status: 'ok', shop: 'Store #4471',
       sync: 'vor 11 Min.', scope: ['Druckkosten je Bestellung', 'Produktionsstatus', 'Rechnungen & Payouts'],
-      writes: 'Neudrucke — nur nach deiner Freigabe.' }
+      writes: 'Neudrucke — nur nach deiner Freigabe.' },
+    { id: 'pinterest', name: 'Pinterest', label: 'Pinterest', status: 'ok', shop: 'nordwindstudio',
+      sync: 'vor 18 Min.', scope: ['Impressionen & Klicks je Pin', 'Follower-Entwicklung', 'Welche Pins Umsatz bringen'],
+      writes: 'Pins veröffentlichen — nur nach deiner Freigabe.' },
+    { id: 'instagram', name: 'Instagram', label: 'Instagram', status: 'ok', shop: '@nordwindstudio',
+      sync: 'vor 18 Min.', scope: ['Reichweite je Beitrag', 'Follower & Interaktionen', 'Klicks aus der Bio'],
+      writes: 'Beiträge & Storys veröffentlichen — nur nach deiner Freigabe.' },
+    { id: 'tiktok', name: 'TikTok', label: 'TikTok', status: 'ok', shop: '@nordwindstudio',
+      sync: 'vor 26 Min.', scope: ['Aufrufe & Watchtime', 'Follower-Entwicklung', 'Profilklicks'],
+      writes: 'Videos veröffentlichen — nur nach deiner Freigabe.' },
+    { id: 'reviews', name: 'Shopify Bewertungen', label: 'Bewertungen', status: 'ok', shop: 'Produkt- & Shop-Rating',
+      sync: 'vor 4 Min.', scope: ['Sterne & Texte je Produkt', 'Shop-Gesamtwertung', 'Unbeantwortete Bewertungen'],
+      writes: 'Antworten veröffentlichen — bei 1–3 Sternen nur nach deiner Freigabe.' }
   ];
 
   /* --- Otto-Chat: Wissen aus genau diesen Daten --------------------------- */
@@ -600,20 +821,22 @@
     'Welches Design soll ich pushen?',
     'Warum ist der Rohertrag so hoch?',
     'Was liegt bei mir zur Freigabe?',
-    'Wo verliere ich Ranking?'
+    'Wo verliere ich Ranking?',
+    'Was bringt mir Social?',
+    'Wie stehen meine Bewertungen?'
   ];
 
   var chatKnowledge = [
     { keys: ['woche', 'wie läuft', 'wie lief', 'überblick', 'briefing', 'zusammenfassung', 'status'],
       answer: 'Kurz zusammengefasst:\n\n• **Umsatz** 30 Tage: {rev30} € ({revTrend} vs. Vormonat) bei {orders30} Bestellungen.\n• **Rohertrag** nach Druck und Gebühren: {gross30} € — das sind {margin} %.\n• **Neu live**: „Retro Trail“ hat in 11 Tagen 1.960 € gemacht, der beste Start bisher.\n• **Bei dir liegen {openApprovals} Freigaben** — die größte davon sind Theos 4 Designs.\n\nDas Einzige, was mir Sorgen macht: „Bergziege Retro“ verliert seit Mai stetig. Ida empfiehlt, es auslaufen zu lassen.' },
     { keys: ['kosten', 'kostet', 'teuer', 'preis', 'rechnet', 'roi', 'lohnt'],
-      answer: 'Die sechs Agenten kosten dich im Juli **{agentCost} €**.\n\nDavon entfallen 20 € auf den Claude-Zugang und der Rest auf Verbrauch. Emma läuft auf einem lokalen Modell auf deinem Server — sie kostet nichts außer Strom.\n\nDagegen stehen rund **{hoursSaved} Stunden** Arbeit, die diesen Monat nicht bei dir gelandet sind. Wenn du deine Stunde mit 45 € ansetzt, sind das etwa {hoursValue} €.\n\nZum Vergleich: deine Google-Ads haben im selben Zeitraum {ads30} € gekostet.' },
+      answer: 'Die {agentCount} Agenten kosten dich im Juli **{agentCost} €**.\n\nDavon entfallen 20 € auf den Claude-Zugang und der Rest auf Verbrauch. Emma läuft auf einem lokalen Modell auf deinem Server — sie kostet nichts außer Strom.\n\nDagegen stehen rund **{hoursSaved} Stunden** Arbeit, die diesen Monat nicht bei dir gelandet sind. Wenn du deine Stunde mit 45 € ansetzt, sind das etwa {hoursValue} €.\n\nZum Vergleich: deine Google-Ads haben im selben Zeitraum {ads30} € gekostet.' },
     { keys: ['design', 'pushen', 'bestseller', 'welches', 'motiv'],
       answer: 'Ich würde auf **„Fjord Lines“** setzen: 4.320 € in 30 Tagen, Trend stabil, und Ida hat schon eine Farbvariante „Sand“ vorbereitet (NOR-63) — das ist der billigste Weg zu mehr Umsatz, weil das Motiv steht.\n\nDer zweite Kandidat ist **„Retro Trail“**: 1.960 € in nur 11 Tagen seit dem Start. Wenn der Trend hält, überholt es „Nordlicht“ im August.\n\nFinger weg von **„Bergziege Retro“** und **„Seemannsgarn“** — beide fallen seit Wochen.' },
     { keys: ['rohertrag', 'marge', 'gewinn', 'verdiene', 'ertrag'],
       answer: 'Der Rohertrag von **{gross30} €** ist Umsatz minus Druckkosten minus Zahlungsgebühren:\n\n{rev30} € − {print30} € (Printful) − {fees30} € (Shopify/PayPal) = **{gross30} €**, also {margin} %.\n\nDas ist für Print-on-Demand ordentlich: Poster liegen bei rund 58 % Marge, Shirts bei 51 % — und dein Poster-Anteil wächst.\n\nDavon gehen noch {ads30} € Werbung, 149 € Software und {agentCost} € Agenten ab. Bleibt ein Betriebsergebnis von rund **{operating} €**.' },
     { keys: ['freigabe', 'freigeben', 'liegt bei mir', 'offen', 'genehmig', 'warten'],
-      answer: 'Bei dir liegen **{openApprovals} Freigaben**:\n\n1. **Theos 4 Designs „Nordic Trails“** — 24 Listings, fertig inklusive Texten und Preisen. Größter Hebel.\n2. **Karlas USt-Voranmeldung Juni** — Zahllast 2.412 €, alle Belege geprüft. Fällig zum 10.08.\n3. **Mias Blogartikel** — zielt auf „wanderrouten poster“, 1.300 Suchanfragen im Monat.\n4. **Emmas Kulanz-Neudruck** für #1044 — Farbfehler des Druckpartners, kostet 12,40 €. Die Kundin wartet seit gestern.\n\nWenn du nur eine Sache machst: die Designs. Der Rest kann bis heute Abend warten — außer der Kundin.' },
+      answer: 'Bei dir liegen **{openApprovals} Freigaben**. Der Reihe nach, wie ich sie sortieren würde:\n\n1. **Theos 4 Designs „Nordic Trails“** — 24 fertige Listings. Größter Hebel, kostet dich einen Klick.\n2. **Emmas zwei Support-Fälle** — ein Neudruck (12,40 €) und eine Ersatzsendung (18,60 €). Beide Kunden warten, einer hat schon einen Stern gegeben.\n3. **Neles Social-Wochenplan** — 9 Beiträge aus vorhandenen Designs, nichts Neues zu produzieren.\n4. **Karlas USt-Voranmeldung** — Frist ist der 10.08., das eilt heute nicht.\n5. **Mias Blogartikel** — SEO wirkt ohnehin erst in Wochen.\n\nWenn du nur zwei Sachen machst: die Designs und die beiden Kunden.' },
     { keys: ['ranking', 'seo', 'google', 'keyword', 'position', 'verliere'],
       answer: 'Verloren hast du eigentlich nur an einer Stelle: **„maritime deko poster“** ist von 18 auf 21 gefallen, weil ein Wettbewerber eine neue Seite gebaut hat. Das Keyword hängt an „Seemannsgarn“, das ohnehin ausläuft — ich würde es ziehen lassen.\n\nSonst geht es nach oben: {top10} Keywords stehen in den Top 10, {top10Delta} mehr als im Vormonat. Am stärksten: „trail running shirt retro“ von 41 auf 8 — das kam mit dem neuen Design.\n\nMia hat zwei Vorschläge offen: Alt-Texte für 38 Bilder (8 Min. Arbeit) und der Ausbau der Hoodie-Seite.' },
     { keys: ['trend', 'nische', 'neue', 'ida', 'radar'],
@@ -628,6 +851,12 @@
       answer: 'Der durchschnittliche Bestellwert liegt bei **{aov} €** ({orders30} Bestellungen auf {rev30} € Umsatz).\n\nDer stärkste Hebel dafür wären Bundles — Theo hat ein 3er-Poster-Bundle für „Nordlicht“ schon als Entwurf fertig. Poster werden ohnehin oft zu zweit gekauft.' },
     { keys: ['traffic', 'besucher', 'sessions', 'woher', 'quelle'],
       answer: 'In 30 Tagen: **{sessions30} Sitzungen**.\n\nDie größte Quelle ist die organische Suche mit 42 % — die ist seit Mias Arbeit um 18 % gewachsen und kostet dich nichts. Google Ads bringt 16 % und kostet {ads30} €.\n\nDas ist der eigentliche Punkt: der Anteil, den du bezahlst, wird kleiner, während der Umsatz wächst.' },
+    { keys: ['social', 'pinterest', 'instagram', 'tiktok', 'nele', 'follower', 'reichweite', 'posten'],
+      answer: 'Social bringt dir **{socialSessions} Sitzungen** in 30 Tagen — 15 % deines Traffics — und rund **{socialRevenue} €** Umsatz.\n\nDie Verteilung ist eindeutig: **Pinterest** macht 55 % davon. Ein Pin läuft im Schnitt acht Monate weiter, ein Instagram-Bild ist nach zwei Tagen tot. Deshalb hat Nele das Gewicht dorthin verschoben.\n\n**TikTok** wächst am schnellsten (+184 Follower im Monat), verkauft aber am wenigsten — sie hält es bewusst klein, bis sich das dreht.\n\nIhr **Wochenplan mit 9 Beiträgen** liegt bei dir zur Freigabe. Nichts davon muss neu produziert werden, alles baut auf Designs, die du schon hast.' },
+    { keys: ['bewertung', 'sterne', 'rating', 'rezension', 'kritik', 'unzufrieden', 'beschwer'],
+      answer: 'Dein Shop steht bei **{ratingAvg} von 5 Sternen** aus {reviewCount} Bewertungen — das sind {reviewRate} % deiner Bestellungen, ein normaler Wert.\n\n**{reviewsOpen} Bewertungen warten auf eine Antwort**, alle mit drei Sternen oder weniger. Emma hat für jede einen Entwurf geschrieben, sendet aber nicht selbst: Bei Kritik steht ein Kulanzangebot im Text, und das ist deine Entscheidung.\n\nInteressanter als die Sterne ist das Muster dahinter: Ida hat die kritischen Bewertungen sortiert — **nur zwei davon betreffen einen echten Fehler** (ein Fehldruck, ein verschollenes Paket). Der Rest sind Erwartungen an Pflege und Motivgröße. Das ist kein Design-Problem, sondern eine Zeile auf der Produktseite.' },
+    { keys: ['ranking oder rating', 'unterschied', 'ranking rating'],
+      answer: 'Zwei verschiedene Dinge, die oft verwechselt werden:\n\n**Ranking** ist deine Position bei Google — Platz 1 bis 100. Daran arbeitet Mia. Aktuell: {top10} Keywords in den Top 10.\n\n**Rating** sind die Sterne, die Kunden dir geben. Aktuell {ratingAvg} von 5. Darum kümmert sich Emma.\n\nDer Zusammenhang: Das Ranking bringt Leute in den Shop, das Rating entscheidet, ob sie kaufen. Beides findest du unter **Sichtbarkeit** — zusammen mit Social, dem dritten Weg, auf dem dich Leute finden.' },
     { keys: ['printful', 'druck', 'lieferant', 'produktion'],
       answer: 'Printful hat im Juli {print30} € gekostet, im Schnitt rund 14 € pro Bestellung.\n\nEin Problem gab es: bei „Retro Trail“ lief ein Druck mit dem falschen Farbprofil (Comfort Colors statt Bella Canvas) — die Kundin hat sich beschwert, Emma hat es beim Druckpartner nachgewiesen. Der Neudruck liegt bei dir zur Freigabe.\n\nAnsonsten läuft die Produktion sauber, keine Verzögerungen.' }
   ];
@@ -654,6 +883,10 @@
     liveEvents: liveEvents,
     tickets: tickets,
     topics: topics,
+    socialChannels: socialChannels,
+    socialPosts: socialPosts,
+    socialPlan: socialPlan,
+    reviews: reviews,
     connectors: connectors,
     chat: { suggestions: chatSuggestions, knowledge: chatKnowledge, fallback: chatFallback },
     traffic: [

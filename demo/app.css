@@ -3,6 +3,13 @@
    Drawer · Modal · Toast · Chat · Agentenlauf · Palette · Tabellen · Studio
    ========================================================================== */
 
+/* Nele kam mit dem Sichtbarkeits-Reiter dazu — base.css ist die unveränderte
+   Kopie des abgenommenen Mockups, deshalb stehen ihre Farbe und die auf
+   7 Agenten erweiterte Team-Reihe hier. */
+:root { --agent-nele: #CFE8E0; }
+.team-grid { grid-template-columns: repeat(7, 1fr); }
+.agent-role { overflow-wrap: anywhere; }
+
 /* --- Klickbarkeit ---------------------------------------------------------- */
 [data-act] { cursor: pointer; }
 .nav-item, .conn, .tab, .range-select, .kpi.link, .row-link, .feed-avatar, .task-ref[data-act] { cursor: pointer; }
@@ -449,7 +456,79 @@
 }
 .demo-flag button:hover { color: #000; }
 
+/* --- Sichtbarkeit: Segment-Umschalter mit Kennzahl ------------------------- */
+.segbar { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.segbig {
+  display: flex; align-items: center; gap: 10px; flex: 1 1 200px;
+  border: 1px solid var(--border); border-radius: 10px; background: #fff;
+  padding: 10px 14px; cursor: pointer; font: inherit; text-align: left;
+  transition: border-color .12s, background .12s;
+}
+.segbig:hover { border-color: #DCDCDC; background: #FCFCFC; }
+.segbig.on { border-color: var(--fg-strong); background: #FBFBFB; }
+.segbig-ico { width: 26px; height: 26px; border-radius: 8px; flex: none; display: flex; align-items: center; justify-content: center; }
+.segbig-ico svg { width: 14px; height: 14px; }
+.segbig-t { font-size: 13px; font-weight: 600; color: #5E5E5E; }
+.segbig.on .segbig-t { color: var(--fg-strong); }
+.segbig-v { font-size: 12px; color: var(--muted-fg); margin-top: 1px; }
+.segbig-v b { color: var(--fg-strong); font-weight: 600; }
+
+/* --- Social ---------------------------------------------------------------- */
+.ch-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.ch-head { display: flex; align-items: center; gap: 8px; }
+.ch-name { font-size: 13.5px; font-weight: 600; color: var(--fg-strong); }
+.post-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.post-art {
+  height: 96px; border-radius: 9px 9px 0 0; display: flex; align-items: flex-end;
+  padding: 9px 11px; color: rgba(255,255,255,.95); font-size: 11px; font-weight: 600;
+  position: relative; overflow: hidden;
+}
+.post-kind {
+  position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.32);
+  border-radius: 5px; padding: 1px 7px; font-size: 10px; font-weight: 600; backdrop-filter: blur(3px);
+}
+.post-body { padding: 10px 12px 11px; }
+.post-title { font-size: 12.5px; font-weight: 600; color: var(--fg-strong); line-height: 1.35; }
+.post-meta { font-size: 11px; color: var(--muted-fg); margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap; }
+.plan-list { display: flex; flex-direction: column; }
+.plan-row {
+  display: flex; align-items: center; gap: 10px; padding: 9px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.plan-row:last-child { border-bottom: none; }
+.plan-main { display: flex; flex-direction: column; font-size: 12.5px; color: var(--fg); }
+.plan-main b { font-weight: 600; color: var(--fg-strong); }
+.plan-sub { font-size: 11px; color: var(--muted-fg); margin-top: 2px; }
+
+/* --- Bewertungen ----------------------------------------------------------- */
+.stars { display: inline-flex; gap: 1px; vertical-align: -1px; }
+.stars svg { width: 13px; height: 13px; }
+.stars .s-on { color: #E8A33D; }
+.stars .s-off { color: #DEDEDE; }
+.stars.lg svg { width: 17px; height: 17px; }
+.rating-hero { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.rating-num { font-size: 40px; font-weight: 700; letter-spacing: -.03em; color: var(--fg-strong); line-height: 1; }
+.rv-row { padding: 13px 16px; border-bottom: 1px solid var(--border-soft); }
+.rv-row:last-child { border-bottom: none; }
+.rv-row.open { background: #FFFDF7; }
+.rv-head { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.rv-title { font-size: 13.5px; font-weight: 600; color: var(--fg-strong); }
+.rv-meta { font-size: 11.5px; color: var(--muted-fg-2); margin-left: auto; white-space: nowrap; }
+.rv-text { font-size: 12.5px; color: #4A4A4A; line-height: 1.55; margin: 6px 0 0; }
+.rv-prod { font-size: 11.5px; color: var(--muted-fg); margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+.rv-reply {
+  margin: 9px 0 0 0; padding: 9px 11px; border-radius: 8px;
+  background: var(--sidebar); border-left: 2px solid var(--border);
+  font-size: 12.5px; color: #4A4A4A; line-height: 1.55;
+}
+.rv-reply-k { font-size: 11px; color: var(--muted-fg-2); margin-bottom: 3px; }
+.dist-row { display: grid; grid-template-columns: 46px 1fr 58px; align-items: center; gap: 10px; padding: 4px 0; }
+.dist-row .traffic-bar { height: 7px; }
+.dist-k { font-size: 12px; color: var(--muted-fg); display: flex; align-items: center; gap: 3px; }
+.dist-v { font-size: 11.5px; color: var(--muted-fg); text-align: right; font-family: var(--mono); }
+
 @media (max-width: 1180px) {
+  .post-grid { grid-template-columns: repeat(2, 1fr); }
   .trio-grid { grid-template-columns: 1fr; }
   .pipeline-grid { grid-template-columns: repeat(2, 1fr); }
   .pipeline-col:nth-child(3) { border-left: none; }

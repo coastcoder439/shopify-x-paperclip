@@ -90,6 +90,52 @@
     return { month: m, net: net, vat: vat, inputVat: inputVat, pay: vat - inputVat, gross: s.revenue };
   }
 
+  // Social: der Anteil steht in D.traffic, die Kanäle teilen ihn unter sich auf.
+  // So bleibt Social mit dem Traffic-Diagramm und dem Zeitraum-Schalter konsistent.
+  function socialStats(n) {
+    var m = metrics(n || state.range);
+    var anteil = (D.traffic.filter(function (t) { return t.name === 'Social'; })[0] || { share: 0 }).share;
+    var sessions = m.sessions * (anteil / 100);
+    var revenue = m.revenue * 0.13;
+    var kanaele = D.socialChannels.map(function (c) {
+      return {
+        ch: c,
+        sessions: Math.round(sessions * (c.share / 100)),
+        revenue: revenue * (c.revShare / 100),
+        orders: Math.round(m.orders * 0.13 * (c.revShare / 100))
+      };
+    });
+    return {
+      anteil: anteil,
+      sessions: Math.round(sessions),
+      revenue: revenue,
+      orders: Math.round(m.orders * 0.13),
+      followers: D.socialChannels.reduce(function (s, c) { return s + c.followers; }, 0),
+      growth: D.socialChannels.reduce(function (s, c) { return s + c.growth; }, 0),
+      posts: D.socialChannels.reduce(function (s, c) { return s + c.posts30; }, 0),
+      kanaele: kanaele
+    };
+  }
+
+  function reviewStats() {
+    var r = state.reviews;
+    var summe = r.reduce(function (s, x) { return s + x.stars; }, 0);
+    var verteilung = [5, 4, 3, 2, 1].map(function (st) {
+      var n = r.filter(function (x) { return x.stars === st; }).length;
+      return { stars: st, count: n, share: r.length ? (n / r.length) * 100 : 0 };
+    });
+    var offen = r.filter(function (x) { return x.status === 'open'; });
+    return {
+      total: r.length,
+      avg: r.length ? summe / r.length : 0,
+      verteilung: verteilung,
+      open: offen.length,
+      openList: offen,
+      kritisch: r.filter(function (x) { return x.stars <= 3; }).length,
+      quote: (r.length / metrics(30).orders) * 100
+    };
+  }
+
   function top10() { return D.keywords.filter(function (k) { return k.pos <= 10; }).length; }
   function top10Prev() { return D.keywords.filter(function (k) { return k.prev <= 10; }).length; }
 
@@ -115,6 +161,10 @@
     seoTasks: D.seoTasks.map(function (x) { return Object.assign({}, x); }),
     contentPlan: D.contentPlan.map(function (x) { return Object.assign({}, x); }),
     tickets: D.tickets.map(function (x) { return Object.assign({}, x); }),
+    reviews: D.reviews.map(function (x) { return Object.assign({}, x); }),
+    socialPlan: D.socialPlan.map(function (x) { return Object.assign({}, x); }),
+    socialPosts: D.socialPosts.map(function (x) { return Object.assign({}, x); }),
+    planStatus: 'open',            // Neles Wochenplan: open | approved
     receiptOpen: 'open',            // der eine unzugeordnete Beleg
     ustva: 'draft',                 // draft | submitted
     feedExpanded: false,
@@ -134,6 +184,7 @@
   function draft(id) { return state.drafts.filter(function (d) { return d.id === id; })[0]; }
   function trend(id) { return state.trends.filter(function (t) { return t.id === id; })[0]; }
   function ticket(id) { return state.tickets.filter(function (t) { return t.id === id; })[0]; }
+  function review(id) { return state.reviews.filter(function (r) { return r.id === id; })[0]; }
   function approval(id) { return state.approvals.filter(function (a) { return a.id === id; })[0]; }
   function openApprovals() { return state.approvals.filter(function (a) { return a.status === 'open'; }); }
 
@@ -345,6 +396,23 @@
     } else if (a.kind === 'support') {
       var t = ticket(a.ticketId);
       extra = '<h4 class="drawer-h">Der Fall</h4><div class="thread">' + threadHtml(t) + '</div>';
+      var rv = state.reviews.filter(function (x) { return x.ticket === a.ticketId; })[0];
+      if (rv) {
+        extra += '<div class="notice warn" style="margin-top:12px">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>' +
+          '<span>Derselbe Kunde hat öffentlich <b>' + rv.stars + ' Stern' + (rv.stars === 1 ? '' : 'e') +
+          '</b> gegeben: „' + fmt.esc(rv.title) + '“. Emmas Antwort darauf liegt unter Sichtbarkeit → Bewertungen.</span></div>';
+      }
+    } else if (a.kind === 'social') {
+      extra = '<h4 class="drawer-h">Die 9 Beiträge</h4><div class="plan-list">' +
+        state.socialPlan.map(function (p) {
+          var c = D.socialChannels.filter(function (x) { return x.id === p.channel; })[0];
+          return '<div class="plan-row">' +
+            '<span class="ch-dot" style="background:' + c.color + '"></span>' +
+            '<span class="plan-main"><b>' + fmt.esc(p.title) + '</b>' +
+              '<span class="plan-sub">' + c.name + ' · ' + p.kind + ' · ' + p.when + '</span></span>' +
+          '</div>';
+        }).join('') + '</div>';
     }
     var impact = a.impact
       ? '<div class="impact"><span class="impact-k">Erwartete Wirkung</span><span class="impact-v ' + (a.impact.revenue >= 0 ? 'up' : 'down') + '">' +
@@ -387,6 +455,11 @@
     setRange: function (n) { state.range = parseInt(n, 10); render(); },
     // Klick auf die Fläche neben der Modal-Box schließt — Klicks in der Box nicht.
     modalScrim: function (_, el, ev) { if (ev.target.id === 'modal') ui.closeModal(); },
+    // Direkt auf eine Ebene des Sichtbarkeits-Reiters springen (Palette, Querverweise)
+    'sicht.go': function (ebene) {
+      state.filters.sicht = ebene || 'website';
+      actions.setTab('sichtbarkeit');
+    },
     rangeMenu: function (_, el) {
       var host = el.closest('.range-select');
       var open = host.classList.toggle('open');
@@ -427,6 +500,10 @@
           pushFeed('mia', '<b>Mia</b> hat den Auftrag übernommen: Metadaten für die 24 neuen Listings — fertig in etwa 20 Minuten.', null, 'NOR-55');
           if (state.tab === 'uebersicht' || state.tab === 'design') render();
         }, 2600);
+        setTimeout(function () {
+          pushFeed('nele', '<b>Nele</b> hat die neuen Designs gesehen und <b>3 Pins</b> dafür entworfen — sie hängt sie an den nächsten Wochenplan.', null, 'NOR-66');
+          if (state.tab === 'uebersicht' || state.tab === 'sichtbarkeit') render();
+        }, 5200);
         ui.toast('4 Designs sind live — 24 Listings im Shop');
       } else if (a.kind === 'ustva') {
         state.ustva = 'submitted';
@@ -444,8 +521,24 @@
           tk.thread.push({ from: 'emma', at: 'gerade eben', text: tk.draft });
           tk.draft = null;
         }
-        pushFeed('emma', '<b>Emma</b> hat den Neudruck für <b>#1044</b> bei Printful ausgelöst und die Kundin informiert.', { type: 'ok', text: 'Erledigt' }, 'NOR-51');
-        ui.toast('Neudruck ausgelöst, Kundin informiert');
+        // Hängt eine öffentliche Bewertung am selben Fall, wird sie gleich mitbeantwortet.
+        var rvT = state.reviews.filter(function (x) { return x.ticket === a.ticketId && x.status === 'open'; })[0];
+        if (rvT) {
+          rvT.status = 'answered';
+          rvT.reply = { text: rvT.draft, at: 'gerade eben' };
+          rvT.draft = null;
+        }
+        var wer = tk ? tk.customer : 'die Kundin';
+        pushFeed('emma', '<b>Emma</b> hat ' + (a.id === 'a6' ? 'die Ersatzsendung für <b>#1047</b> ausgelöst' : 'den Neudruck für <b>#1044</b> bei Printful ausgelöst') +
+          ' und <b>' + fmt.esc(wer) + '</b> informiert' + (rvT ? ' — auch öffentlich unter der Bewertung' : '') + '.',
+          { type: 'ok', text: 'Erledigt' }, 'NOR-51');
+        ui.toast(a.id === 'a6' ? 'Ersatzsendung ausgelöst, Kunde informiert' : 'Neudruck ausgelöst, Kundin informiert');
+      } else if (a.kind === 'social') {
+        state.planStatus = 'approved';
+        pushFeed('nele', '<b>Neles Wochenplan</b> ist freigegeben — <b>' + state.socialPlan.length +
+          ' Beiträge</b> gehen zu den geplanten Zeiten raus. Erste Reichweiten meldet sie in 48 Stunden.',
+          { type: 'ok', text: 'Geplant' }, 'NOR-66');
+        ui.toast(state.socialPlan.length + ' Beiträge eingeplant');
       }
       render();
     },
@@ -561,7 +654,10 @@
       var items = [
         { k: 'Übersicht', s: 'Reiter', act: 'setTab', arg: 'uebersicht' },
         { k: 'Design-Studio', s: 'Reiter', act: 'setTab', arg: 'design' },
-        { k: 'SEO & Ranking', s: 'Reiter', act: 'setTab', arg: 'seo' },
+        { k: 'Sichtbarkeit', s: 'Reiter', act: 'setTab', arg: 'sichtbarkeit' },
+        { k: 'Google-Ranking & Keywords', s: 'Sichtbarkeit → Website', act: 'sicht.go', arg: 'website' },
+        { k: 'Social Media', s: 'Sichtbarkeit → Social', act: 'sicht.go', arg: 'social' },
+        { k: 'Bewertungen & Sterne', s: 'Sichtbarkeit → Bewertungen', act: 'sicht.go', arg: 'reviews' },
         { k: 'Buchhaltung', s: 'Reiter', act: 'setTab', arg: 'buchhaltung' },
         { k: 'Kundenservice', s: 'Reiter', act: 'setTab', arg: 'support' }
       ].concat(D.agents.map(function (a) { return { k: a.name, s: a.role, act: 'openAgent', arg: a.id }; }))
@@ -624,9 +720,14 @@
 
   /* --- Otto-Chat ----------------------------------------------------------- */
   function chatVars() {
-    var m = metrics(30), ts = ticketStats();
+    var m = metrics(30), ts = ticketStats(), so = socialStats(30), rv = reviewStats();
     var hours = D.agents.reduce(function (s, a) { return s + a.hoursSaved; }, 0);
     return {
+      agentCount: String(D.agents.length),
+      socialSessions: fmt.num(so.sessions), socialRevenue: fmt.num(so.revenue),
+      socialFollowers: fmt.num(so.followers),
+      ratingAvg: nf1.format(rv.avg), reviewCount: String(rv.total),
+      reviewsOpen: String(rv.open), reviewRate: fmt.pct0(rv.quote),
       rev30: fmt.num(m.revenue), revTrend: fmt.signPct(m.revenueDelta), orders30: fmt.num(m.orders),
       sessions30: fmt.num(m.sessions), gross30: fmt.num(m.gross), margin: fmt.pct0(m.margin),
       print30: fmt.num(m.print), fees30: fmt.num(m.fees), ads30: fmt.num(m.ads),
@@ -823,6 +924,7 @@
     data: D, state: state, fmt: fmt, ui: ui, actions: actions, views: {},
     metrics: metrics, monthDays: monthDays, monthSums: monthSums, ustvaNumbers: ustvaNumbers,
     top10: top10, top10Prev: top10Prev, ticketStats: ticketStats,
+    socialStats: socialStats, reviewStats: reviewStats, review: review,
     agent: agent, design: design, draft: draft, trend: trend, ticket: ticket,
     approval: approval, openApprovals: openApprovals,
     feedRowHtml: feedRowHtml, threadHtml: threadHtml, pushFeed: pushFeed,

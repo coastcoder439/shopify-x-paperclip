@@ -53,7 +53,7 @@
       kpiCard('Umsatz', F.eur(m.revenue), ICON_SHOPIFY, m.revenueDelta >= 0, F.signPct(m.revenueDelta), 'vs. Vorperiode', 'ov.kpi', 'revenue') +
       kpiCard('Bestellungen', F.num(m.orders), ICON_SHOPIFY, m.ordersDelta >= 0, F.signPct(m.ordersDelta), 'vs. Vorperiode', 'ov.kpi', 'orders') +
       kpiCard('Rohertrag n. Druckkosten', F.eur(m.gross), ICON_SHOPIFY, m.grossDelta >= 0, F.signPct(m.grossDelta), 'Marge ' + F.pct0(m.margin), 'setTab', 'buchhaltung') +
-      kpiCard('Google Top-10-Keywords', F.num(top10n), ICON_GSC, top10d >= 0, F.signNum(top10d), 'vs. Vormonat', 'setTab', 'seo') +
+      kpiCard('Google Top-10-Keywords', F.num(top10n), ICON_GSC, top10d >= 0, F.signNum(top10d), 'vs. Vormonat', 'ov.sicht', 'website') +
       kpiCard('Sessions', F.num(m.sessions), ICON_GA4, m.sessionsDelta >= 0, F.signPct(m.sessionsDelta), 'vs. Vorperiode', 'ov.kpi', 'sessions') +
       '</div>';
   }
@@ -158,14 +158,31 @@
     var reviewContent = S.contentPlan.filter(function (c) { return c.status === 'review'; }).length;
     var avgPos = (S.keywords.reduce(function (s, k) { return s + k.pos; }, 0) / S.keywords.length).toFixed(1).replace('.', ',');
 
-    var seoCard = '<div class="card" data-act="setTab" data-arg="seo"><div class="card-head"><div>' +
-      '<div class="card-title">SEO &amp; Ranking</div><div class="card-title-note">Search Console</div></div></div>' +
-      '<div class="card-pad">' + topKw.map(function (k) {
-        return '<div class="kw-row"><div><div class="kw-name">' + k.kw + '</div><div class="kw-vol">' + F.num(k.vol) + ' Suchanfragen/Monat</div></div>' +
-          '<div class="kw-pos"><span class="pill working">' + k.prev + ' → ' + k.pos + '</span><span class="trend up">▲' + (k.prev - k.pos) + '</span></div></div>';
-      }).join('') + '</div>' +
+    // Teaser für den Sichtbarkeits-Reiter: drei Wege, auf denen Kunden zu dir finden.
+    var so = DEMO.socialStats(S.range);
+    var rv = DEMO.reviewStats();
+    var top10n2 = DEMO.top10();
+    var zeile = function (ebene, name, unten, pillCls, pillTxt, trend) {
+      return '<div class="kw-row" data-act="ov.sicht" data-arg="' + ebene + '">' +
+        '<div><div class="kw-name">' + name + '</div><div class="kw-vol">' + unten + '</div></div>' +
+        '<div class="kw-pos"><span class="pill ' + pillCls + '">' + pillTxt + '</span>' + (trend || '') + '</div></div>';
+    };
+    var seoCard = '<div class="card"><div class="card-head"><div>' +
+      '<div class="card-title">Sichtbarkeit</div><div class="card-title-note">Google · Social · Bewertungen</div></div></div>' +
+      '<div class="card-pad">' +
+        zeile('website', 'Website', 'Ø Platz ' + avgPos + ' bei Google',
+          'working', top10n2 + ' in Top 10',
+          '<span class="trend up">▲' + (top10n2 - DEMO.top10Prev()) + '</span>') +
+        zeile('social', 'Social', F.num(so.sessions) + ' Sitzungen · ' + so.anteil + ' % des Traffics',
+          'idle', F.num(so.followers) + ' Follower',
+          '<span class="trend up">' + F.signNum(so.growth) + '</span>') +
+        zeile('reviews', 'Bewertungen', rv.total + ' Sterne-Bewertungen · ' + F.pct0(rv.quote) + ' der Bestellungen',
+          rv.open ? 'scheduled' : 'idle', rv.avg.toFixed(1).replace('.', ',') + ' ★',
+          rv.open ? '<span class="feed-flag warn">' + rv.open + ' offen</span>' : '') +
+      '</div>' +
       '<div class="card-foot"><span>' + doneSeo + ' Metas optimiert · ' + reviewContent + ' Blogartikel in Freigabe</span>' +
-      '<span>Ø Position <b>' + avgPos + '</b></span></div></div>';
+      '<span data-act="ov.sicht" data-arg="website">Alle drei Ebenen →</span></div></div>';
+    void topKw;
 
     var ms = DEMO.monthSums(6);
     var buchCard = '<div class="card" data-act="setTab" data-arg="buchhaltung"><div class="card-head"><div>' +
@@ -189,7 +206,7 @@
       '<div class="card-pad"><div class="stat-big">' + F.pct0(ts.rate) + '</div>' +
       '<div class="stat-sub">automatisch gelöst (' + ts.solved + ' von ' + ts.total + ' Anfragen)</div>' +
       '<div class="kv-row"><span class="kv-k">Ø Erstantwort</span><span class="kv-v">' + D.fixed.firstReply + '</span></div>' +
-      '<div class="kv-row"><span class="kv-k">Zufriedenheit</span><span class="kv-v">' + D.fixed.satisfaction + '</span></div>' +
+      '<div class="kv-row"><span class="kv-k">Zufriedenheit mit Emma</span><span class="kv-v">' + D.fixed.satisfaction + '</span></div>' +
       '<div class="traffic" style="margin-top:8px">' + topTopics.map(function (t) {
         return '<div class="traffic-row"><div class="traffic-name">' + t.key + '</div>' +
           '<div class="traffic-bar"><i style="width:' + ((t.share / maxTopic) * 100).toFixed(0) + '%;background:' + t.color + '"></i></div>' +
@@ -359,5 +376,11 @@
   A['ov.feed'] = function () {
     DEMO.state.feedExpanded = !DEMO.state.feedExpanded;
     DEMO.render();
+  };
+
+  // Springt in den Sichtbarkeits-Reiter und gleich auf die richtige Ebene.
+  A['ov.sicht'] = function (ebene) {
+    DEMO.state.filters.sicht = ebene || 'website';
+    A.setTab('sichtbarkeit');
   };
 })();

@@ -302,12 +302,12 @@
     return '<div class="duo-grid">' + left + right + '</div>';
   }
 
-  /* --- View-Registrierung -------------------------------------------------------*/
-  DEMO.views.seo = {
+  /* --- Registrierung als Ebene „Website" des Sichtbarkeits-Reiters --------------*/
+  window.SICHT = window.SICHT || {};
+  window.SICHT.website = {
     render: function (S) {
       return renderNotice() + renderKpis(S) + renderPositions(S) + renderKeywordsSection(S) + renderDuoGrid(S);
-    },
-    mount: function (root, S) {}
+    }
   };
 
   /* --- Aktion: Keyword-Detail (exklusiv global) ---------------------------------*/

@@ -61,7 +61,7 @@
         '<div class="guv" style="margin-top:10px">' +
           zeile('Werbung (Google Ads)', F.eurSigned(-m.ads)) +
           zeile('Software &amp; Abos', F.eurSigned(-m.software)) +
-          zeile('Agenten <span class="feed-flag ok" style="margin-left:4px">6 Agenten</span>', F.eurSigned(-m.agentCost)) +
+          zeile('Agenten <span class="feed-flag ok" style="margin-left:4px">' + D.agents.length + ' Agenten</span>', F.eurSigned(-m.agentCost)) +
           zeile('Betriebsergebnis', F.eur2(m.operating), 'total') +
         '</div>' +
       '</div>' +
