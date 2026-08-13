@@ -75,7 +75,7 @@
     return '<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">' +
       kpiCard('Sitzungen aus Social', F.num(so.sessions), c1) +
       kpiCard('Umsatz aus Social', F.eur(so.revenue), c2) +
-      kpiCard('Follower', F.num(so.followers), c3) +
+      kpiCard('Follower & Abonnenten', F.num(so.followers), c3) +
       kpiCard('Beiträge', F.num(postsN), c4) +
     '</div>';
   }
@@ -87,13 +87,13 @@
     return '<div class="card">' +
       '<div class="card-head"><div class="ch-head"><span class="ch-dot" style="background:' + ch.color + '"></span>' +
         '<span class="ch-name">' + F.esc(ch.name) + '</span></div>' +
-        '<span class="card-title-note">' + F.num(ch.followers) + ' Follower</span></div>' +
+        '<span class="card-title-note">' + F.num(ch.followers) + ' ' + (ch.audienceLabel || 'Follower') + '</span></div>' +
       '<div class="card-pad">' +
         '<div class="stat-big">' + F.num(k.sessions) + '</div>' +
         '<div class="stat-sub">Sitzungen · ' + F.pct0(ch.share) + ' des Social-Traffics</div>' +
         '<div class="kv-row"><span class="kv-k">Umsatz</span><span class="kv-v">' + F.eur(k.revenue) + '</span></div>' +
         '<div class="kv-row"><span class="kv-k">Bestellungen</span><span class="kv-v">' + F.num(k.orders) + '</span></div>' +
-        '<div class="kv-row"><span class="kv-k">Follower-Zuwachs</span><span class="kv-v">' + F.signNum(ch.growth) + '</span></div>' +
+        '<div class="kv-row"><span class="kv-k">' + (ch.audienceLabel === 'Abonnenten' ? 'Abonnenten-Zuwachs' : 'Follower-Zuwachs') + '</span><span class="kv-v">' + F.signNum(ch.growth) + '</span></div>' +
         '<div class="kv-row"><span class="kv-k">Beiträge</span><span class="kv-v">' + F.num(postsN) + '</span></div>' +
         '<p class="hint">' + F.esc(ch.role) + '</p>' +
       '</div>' +
@@ -109,7 +109,8 @@
     var cards = so.kanaele.map(function (k) { return channelCard(k, S); }).join('');
     return '<div class="section-head"><div><div class="section-title">Kanäle</div>' +
       '<div class="section-sub">Wo deine Reichweite herkommt · ' + S.range + ' Tage</div></div></div>' +
-      '<div class="trio-grid">' + cards + '</div>';
+      // 4 Kanäle seit dem WhatsApp-Zugang — trio-grid würde 3+1 stapeln
+      '<div class="trio-grid" style="grid-template-columns:repeat(' + so.kanaele.length + ',1fr)">' + cards + '</div>';
   }
 
   /* --- Block 4: Beiträge -------------------------------------------------------*/

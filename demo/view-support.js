@@ -74,6 +74,15 @@
         '<b>' + ts.open + '</b> Fälle warten auf dich.',
         '<button class="btn primary sm" data-act="su.first">Ersten öffnen</button>');
     }
+    // Brücke zu den Bewertungen: Beschwerden kommen per Mail UND öffentlich als Sterne.
+    // Emma betreut beides — beantwortet wird dort, wo die Kritik für alle sichtbar ist.
+    var rv = DEMO.reviewStats();
+    if (rv.open > 0) {
+      html += notice('info',
+        'Außerdem warten <b>' + rv.open + '</b> öffentliche Bewertungen auf eine Antwort — ' +
+        'teils von denselben Kunden wie die Fälle hier.',
+        '<button class="btn ghost sm" data-act="sicht.go" data-arg="reviews">Zu den Bewertungen</button>');
+    }
     return html;
   }
 

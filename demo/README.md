@@ -9,7 +9,7 @@ Alle Daten sind erfunden. Der Reset-Knopf unten mittig stellt den Ausgangszustan
 |---|---|
 | **Übersicht** | Zahlen, Team, Freigaben, Design-Performance |
 | **Design-Studio** | Trend-Radar → Entwürfe → Freigabe → Bibliothek |
-| **Sichtbarkeit** | drei Ebenen: **Website** (Google-Ranking) · **Social** (Pinterest, Instagram, TikTok) · **Bewertungen** (Sterne) |
+| **Sichtbarkeit** | drei Ebenen: **Website** (Google-Ranking) · **Social** (Pinterest, Instagram, TikTok, WhatsApp-Kanal) · **Bewertungen** (Sterne) |
 | **Buchhaltung** | GuV, Belege, USt-Voranmeldung, Agenten-Kosten |
 | **Kundenservice** | Anfragen mit echten Gesprächsverläufen |
 

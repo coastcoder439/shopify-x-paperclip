@@ -426,12 +426,12 @@
       detail: 'Das Tracking zeigt seit dem 07.07. keinen Scan mehr. Emma hat die DHL-Nachforschung angestoßen, die dauert erfahrungsgemäß 5–10 Werktage. Sie schlägt vor, nicht darauf zu warten, sondern sofort neu zu schicken — der Kunde hat zusätzlich eine 1-Stern-Bewertung hinterlassen.',
       effect: 'Nach Freigabe: Ersatz geht mit Priorität raus, Emma antwortet dem Kunden und auf seine Bewertung.',
       impact: { revenue: -18.60, note: 'Kosten der Ersatzsendung — die Bewertung kostet mehr' } },
-    { id: 'a7', title: 'Social-Wochenplan: 9 Beiträge freigeben', chip: 'Social · Pinterest, Instagram, TikTok', by: 'nele', ago: 'vor 30 Min.',
-      desc: 'Nele hat die Woche geplant: 5 Pins, 3 Instagram-Beiträge, 1 TikTok — alle aus vorhandenen Designs.',
+    { id: 'a7', title: 'Social-Wochenplan: 10 Beiträge freigeben', chip: 'Social · Pinterest, Instagram, TikTok, WhatsApp', by: 'nele', ago: 'vor 30 Min.',
+      desc: 'Nele hat die Woche geplant: 5 Pins, 3 Instagram-Beiträge, 1 TikTok, 1 WhatsApp-Broadcast — alle aus vorhandenen Designs.',
       task: 'NOR-66', kind: 'social',
-      detail: 'Der Plan folgt der Reichweite der letzten 30 Tage: Pinterest bekommt das meiste Gewicht, weil dort ein Beitrag monatelang weiterläuft. Das Wintermotiv „Polarstern“ geht bewusst schon im Juli raus — auf Pinterest wird der Dezember im Sommer geplant.',
+      detail: 'Der Plan folgt der Reichweite der letzten 30 Tage: Pinterest bekommt das meiste Gewicht, weil dort ein Beitrag monatelang weiterläuft. Das Wintermotiv „Polarstern“ geht bewusst schon im Juli raus — auf Pinterest wird der Dezember im Sommer geplant. Der WhatsApp-Broadcast kommt zuletzt in der Woche: höchstens zwei pro Woche, damit der Kanal wertvoll bleibt.',
       effect: 'Nach Freigabe: Die Beiträge gehen zu den geplanten Zeiten raus, Nele meldet die Reichweite nach 48 Stunden.',
-      impact: { revenue: 640, note: 'erwarteter Umsatz in 30 Tagen — gerechnet aus der Klickrate vergleichbarer Beiträge' } }
+      impact: { revenue: 780, note: 'erwarteter Umsatz in 30 Tagen — gerechnet aus der Klickrate vergleichbarer Beiträge; der Broadcast trägt am meisten bei' } }
   ];
 
   /* --- Aktivitäts-Feed ---------------------------------------------------- */
@@ -439,7 +439,7 @@
     { id: 'f1', agent: 'ida', time: '09:52', flag: { type: 'warn', text: 'Trend' }, task: 'NOR-61',
       text: '<b>Ida</b> meldet: Nische <b>„Retro Trail Running“</b> +140 % Suchinteresse (Google Trends, 90 Tage), geringe Konkurrenz auf Etsy — Design-Brief an Theo erstellt.' },
     { id: 'f1b', agent: 'nele', time: '11:00', flag: { type: 'warn', text: 'Plan' }, task: 'NOR-66',
-      text: '<b>Nele</b> hat den <b>Social-Wochenplan</b> fertig: 9 Beiträge, Schwerpunkt Pinterest — liegt bei dir zur Freigabe.' },
+      text: '<b>Nele</b> hat den <b>Social-Wochenplan</b> fertig: 10 Beiträge, Schwerpunkt Pinterest, dazu ein WhatsApp-Broadcast — liegt bei dir zur Freigabe.' },
     { id: 'f1c', agent: 'emma', time: '10:20', flag: { type: 'warn', text: 'Bewertung' }, task: 'NOR-51',
       text: '<b>Emma</b>: neue <b>1-Stern-Bewertung</b> zu Bestellung #1047 — derselbe Kunde, dessen Paket im Depot hängt. Antwortentwurf liegt bereit.' },
     { id: 'f2', agent: 'theo', time: '09:30', flag: null, task: 'NOR-62',
@@ -619,19 +619,24 @@
   /* --- Social ------------------------------------------------------------- */
   // Anteile statt absoluter Zahlen: die Kanäle teilen sich den Social-Traffic
   // (15 % laut D.traffic) — dadurch rechnet auch der Zeitraum-Schalter mit.
+  // share/revShare müssen je auf 100 summieren — check-engine prüft die Sitzungssummen.
   var socialChannels = [
-    { id: 'pinterest', name: 'Pinterest', color: '#C8232C', share: 55, revShare: 62,
-      followers: 4820, growth: 312, posts30: 26,
+    { id: 'pinterest', name: 'Pinterest', color: '#C8232C', share: 50, revShare: 54,
+      followers: 4820, growth: 312, posts30: 26, audienceLabel: 'Follower',
       role: 'Der Kanal für Poster — Pins laufen monatelang weiter.',
       note: 'Ein Pin bringt im Schnitt 8 Monate lang Klicks. Deshalb liegt hier der Schwerpunkt.' },
-    { id: 'instagram', name: 'Instagram', color: '#C13584', share: 30, revShare: 29,
-      followers: 2140, growth: 96, posts30: 14,
+    { id: 'instagram', name: 'Instagram', color: '#C13584', share: 26, revShare: 24,
+      followers: 2140, growth: 96, posts30: 14, audienceLabel: 'Follower',
       role: 'Textil und Gesicht der Marke — Reels vor Bildern.',
       note: 'Reels erreichen hier das Vierfache eines Bildbeitrags, kosten Nele aber auch mehr Arbeit.' },
-    { id: 'tiktok', name: 'TikTok', color: '#2B2B2B', share: 15, revShare: 9,
-      followers: 610, growth: 184, posts30: 7,
+    { id: 'tiktok', name: 'TikTok', color: '#2B2B2B', share: 14, revShare: 8,
+      followers: 610, growth: 184, posts30: 7, audienceLabel: 'Follower',
       role: 'Jung, wächst schnell, kauft (noch) wenig.',
-      note: 'Stärkstes Wachstum, schwächster Umsatz — Nele hält es klein, bis sich das dreht.' }
+      note: 'Stärkstes Wachstum, schwächster Umsatz — Nele hält es klein, bis sich das dreht.' },
+    { id: 'whatsapp', name: 'WhatsApp-Kanal', color: '#25D366', share: 10, revShare: 14,
+      followers: 380, growth: 54, posts30: 6, audienceLabel: 'Abonnenten',
+      role: 'Der kleinste Kanal — aber pro Klick der wertvollste.',
+      note: 'Ein Broadcast erreicht jeden Abonnenten, ohne Algorithmus dazwischen. Nele schickt höchstens zwei pro Woche — wer hier abonniert, will kaufen, nicht scrollen.' }
   ];
 
   var socialPosts = [
@@ -666,7 +671,15 @@
     { id: 'sp8', channel: 'instagram', design: 'd12', kind: 'Story', when: 'Heute 09:00', status: 'live',
       title: 'Frage an euch: Sand oder Petrol?',
       text: 'Wir überlegen eine zweite Farbe für „Fjord Lines“. Stimmt ab.',
-      reach: 3400, clicks: 88, orders: 2, revenue: 64 }
+      reach: 3400, clicks: 88, orders: 2, revenue: 64 },
+    { id: 'sp9', channel: 'whatsapp', design: 'd21', kind: 'Broadcast', when: 'Mo 19:00', status: 'live',
+      title: 'Neu im Shop: Retro Trail — zuerst für euch',
+      text: 'Bevor es irgendwo anders zu sehen ist: das neue Motiv „Retro Trail“, ab heute bestellbar. Als Dank fürs Abonnieren: bis Sonntag versandkostenfrei mit dem Code KANAL.',
+      reach: 372, clicks: 148, orders: 9, revenue: 286 },
+    { id: 'sp10', channel: 'whatsapp', design: 'd19', kind: 'Broadcast', when: '04.07. 19:00', status: 'live',
+      title: 'Nordlicht-Serie: das 3er-Set kommt',
+      text: 'Ihr habt oft nach einem Set gefragt — Theo baut es gerade. Wer es zuerst sehen will: Antwort mit „Set“, wir melden uns beim Start.',
+      reach: 349, clicks: 96, orders: 5, revenue: 172 }
   ];
 
   // Neles Wochenplan — wartet als Ganzes auf Freigabe (Approval a7)
@@ -697,7 +710,10 @@
       text: 'Ihr habt entschieden — wir zeigen, was daraus wird.' },
     { id: 'pl9', channel: 'pinterest', design: 'd09', kind: 'Pin', when: 'Mo 08:00',
       title: 'Waldläufer — Hoodie im Herbstlicht',
-      text: 'Der ruhigste Entwurf im Sortiment, jetzt in seiner Jahreszeit.' }
+      text: 'Der ruhigste Entwurf im Sortiment, jetzt in seiner Jahreszeit.' },
+    { id: 'pl10', channel: 'whatsapp', design: 'd12', kind: 'Broadcast', when: 'Do 19:00',
+      title: 'Abstimmungs-Ergebnis: Die neue Farbe für „Fjord Lines“',
+      text: 'Ihr habt abgestimmt, wir haben gebaut. Die Gewinner-Farbe zuerst hier im Kanal — 48 Stunden bevor sie in den Shop geht.' }
   ];
 
   /* --- Bewertungen --------------------------------------------------------- */
@@ -809,6 +825,9 @@
     { id: 'tiktok', name: 'TikTok', label: 'TikTok', status: 'ok', shop: '@nordwindstudio',
       sync: 'vor 26 Min.', scope: ['Aufrufe & Watchtime', 'Follower-Entwicklung', 'Profilklicks'],
       writes: 'Videos veröffentlichen — nur nach deiner Freigabe.' },
+    { id: 'whatsapp', name: 'WhatsApp-Kanal', label: 'WhatsApp', status: 'ok', shop: 'Kanal „Nordwind Studio“',
+      sync: 'vor 9 Min.', scope: ['Abonnenten-Entwicklung', 'Reichweite & Reaktionen je Broadcast', 'Klicks auf Shop-Links'],
+      writes: 'Broadcasts senden — nur nach deiner Freigabe, höchstens zwei pro Woche.' },
     { id: 'reviews', name: 'Shopify Bewertungen', label: 'Bewertungen', status: 'ok', shop: 'Produkt- & Shop-Rating',
       sync: 'vor 4 Min.', scope: ['Sterne & Texte je Produkt', 'Shop-Gesamtwertung', 'Unbeantwortete Bewertungen'],
       writes: 'Antworten veröffentlichen — bei 1–3 Sternen nur nach deiner Freigabe.' }
@@ -852,7 +871,7 @@
     { keys: ['traffic', 'besucher', 'sessions', 'woher', 'quelle'],
       answer: 'In 30 Tagen: **{sessions30} Sitzungen**.\n\nDie größte Quelle ist die organische Suche mit 42 % — die ist seit Mias Arbeit um 18 % gewachsen und kostet dich nichts. Google Ads bringt 16 % und kostet {ads30} €.\n\nDas ist der eigentliche Punkt: der Anteil, den du bezahlst, wird kleiner, während der Umsatz wächst.' },
     { keys: ['social', 'pinterest', 'instagram', 'tiktok', 'nele', 'follower', 'reichweite', 'posten'],
-      answer: 'Social bringt dir **{socialSessions} Sitzungen** in 30 Tagen — 15 % deines Traffics — und rund **{socialRevenue} €** Umsatz.\n\nDie Verteilung ist eindeutig: **Pinterest** macht 55 % davon. Ein Pin läuft im Schnitt acht Monate weiter, ein Instagram-Bild ist nach zwei Tagen tot. Deshalb hat Nele das Gewicht dorthin verschoben.\n\n**TikTok** wächst am schnellsten (+184 Follower im Monat), verkauft aber am wenigsten — sie hält es bewusst klein, bis sich das dreht.\n\nIhr **Wochenplan mit 9 Beiträgen** liegt bei dir zur Freigabe. Nichts davon muss neu produziert werden, alles baut auf Designs, die du schon hast.' },
+      answer: 'Social bringt dir **{socialSessions} Sitzungen** in 30 Tagen — 15 % deines Traffics — und rund **{socialRevenue} €** Umsatz.\n\nDie Verteilung ist eindeutig: **Pinterest** macht die Hälfte davon. Ein Pin läuft im Schnitt acht Monate weiter, ein Instagram-Bild ist nach zwei Tagen tot. Deshalb hat Nele das Gewicht dorthin verschoben.\n\nDer spannendste Kanal ist aber der kleinste: der **WhatsApp-Kanal** hat nur 380 Abonnenten, bringt mit 10 % des Social-Traffics aber 14 % des Social-Umsatzes — wer da drin ist, will kaufen. **TikTok** wächst am schnellsten (+184 Follower im Monat), verkauft aber am wenigsten.\n\nIhr **Wochenplan mit 10 Beiträgen** liegt bei dir zur Freigabe. Nichts davon muss neu produziert werden, alles baut auf Designs, die du schon hast.' },
     { keys: ['bewertung', 'sterne', 'rating', 'rezension', 'kritik', 'unzufrieden', 'beschwer'],
       answer: 'Dein Shop steht bei **{ratingAvg} von 5 Sternen** aus {reviewCount} Bewertungen — das sind {reviewRate} % deiner Bestellungen, ein normaler Wert.\n\n**{reviewsOpen} Bewertungen warten auf eine Antwort**, alle mit drei Sternen oder weniger. Emma hat für jede einen Entwurf geschrieben, sendet aber nicht selbst: Bei Kritik steht ein Kulanzangebot im Text, und das ist deine Entscheidung.\n\nInteressanter als die Sterne ist das Muster dahinter: Ida hat die kritischen Bewertungen sortiert — **nur zwei davon betreffen einen echten Fehler** (ein Fehldruck, ein verschollenes Paket). Der Rest sind Erwartungen an Pflege und Motivgröße. Das ist kein Design-Problem, sondern eine Zeile auf der Produktseite.' },
     { keys: ['ranking oder rating', 'unterschied', 'ranking rating'],
