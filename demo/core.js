@@ -529,10 +529,15 @@
           rvT.draft = null;
         }
         var wer = tk ? tk.customer : 'die Kundin';
-        pushFeed('emma', '<b>Emma</b> hat ' + (a.id === 'a6' ? 'die Ersatzsendung für <b>#1047</b> ausgelöst' : 'den Neudruck für <b>#1044</b> bei Printful ausgelöst') +
+        var tat = a.id === 'a6' ? 'die Ersatzsendung für <b>#1047</b> ausgelöst'
+                : a.id === 'a8' ? 'den Ersatz-Hoodie für <b>#1048</b> bei Printful bestellt'
+                : 'den Neudruck für <b>#1044</b> bei Printful ausgelöst';
+        pushFeed('emma', '<b>Emma</b> hat ' + tat +
           ' und <b>' + fmt.esc(wer) + '</b> informiert' + (rvT ? ' — auch öffentlich unter der Bewertung' : '') + '.',
           { type: 'ok', text: 'Erledigt' }, 'NOR-51');
-        ui.toast(a.id === 'a6' ? 'Ersatzsendung ausgelöst, Kunde informiert' : 'Neudruck ausgelöst, Kundin informiert');
+        ui.toast(a.id === 'a6' ? 'Ersatzsendung ausgelöst, Kunde informiert'
+               : a.id === 'a8' ? 'Ersatz ausgelöst, Antwort öffentlich veröffentlicht'
+               : 'Neudruck ausgelöst, Kundin informiert');
       } else if (a.kind === 'social') {
         state.planStatus = 'approved';
         pushFeed('nele', '<b>Neles Wochenplan</b> ist freigegeben — <b>' + state.socialPlan.length +

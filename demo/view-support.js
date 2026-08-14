@@ -74,14 +74,15 @@
         '<b>' + ts.open + '</b> Fälle warten auf dich.',
         '<button class="btn primary sm" data-act="su.first">Ersten öffnen</button>');
     }
-    // Brücke zu den Bewertungen: Beschwerden kommen per Mail UND öffentlich als Sterne.
-    // Emma betreut beides — beantwortet wird dort, wo die Kritik für alle sichtbar ist.
-    var rv = DEMO.reviewStats();
-    if (rv.open > 0) {
+    // Kritische Bewertungen SIND Fälle: Emma legt sie automatisch als Vorgang an
+    // (Kanal „Bewertung“) — eine Arbeitsliste, kein zweiter Ort. Die Auswertung
+    // (Schnitt, Verteilung, Muster) bleibt unter Sichtbarkeit → Bewertungen.
+    var rvFaelle = S.tickets.filter(function (t) { return t.channel === 'Bewertung'; }).length;
+    if (rvFaelle > 0) {
       html += notice('info',
-        'Außerdem warten <b>' + rv.open + '</b> öffentliche Bewertungen auf eine Antwort — ' +
-        'teils von denselben Kunden wie die Fälle hier.',
-        '<button class="btn ghost sm" data-act="sicht.go" data-arg="reviews">Zu den Bewertungen</button>');
+        'Kritische Bewertungen legt Emma automatisch als Fall an — Kanal <b>„Bewertung“</b>, ' +
+        'unten in der Liste. Die Antwort erscheint öffentlich unter der Bewertung.',
+        '<button class="btn ghost sm" data-act="sicht.go" data-arg="reviews">Zur Auswertung</button>');
     }
     return html;
   }
@@ -290,6 +291,16 @@
       }
     }
 
+    // Hängt an diesem Fall eine öffentliche Bewertung, ist die Antwort keine Privatsache.
+    var linkedRv = DEMO.state.reviews.filter(function (r) { return r.ticket === id; })[0];
+    if (linkedRv) {
+      body += notice(linkedRv.status === 'open' ? 'warn' : 'info',
+        'Dieser Fall ist eine <b>öffentliche ' + linkedRv.stars + '-Sterne-Bewertung</b>' +
+        (t.channel === 'Bewertung' ? ' — es gab nie eine Mail. Deine Antwort erscheint für alle sichtbar unter der Bewertung.'
+                                   : ' — derselbe Kunde hat auch öffentlich bewertet.'),
+        '<button class="btn ghost sm" data-act="openReview" data-arg="' + linkedRv.id + '">Bewertung ansehen</button>');
+    }
+
     body += '<h4 class="drawer-h">Gesprächsverlauf</h4><div class="thread">' + DEMO.threadHtml(t) + '</div>';
 
     var foot;
@@ -366,12 +377,24 @@
     t.thread.push({ from: 'emma', at: 'gerade eben', text: text });
     t.status = 'solved';
     t.draft = null;
+    // Fälle aus Bewertungen haben keinen Privatkanal — die Antwort geht öffentlich
+    // unter die Bewertung, deshalb wird sie dort mitveröffentlicht.
+    var rv = DEMO.state.reviews.filter(function (r) { return r.ticket === id && r.status === 'open'; })[0];
+    if (rv && t.channel === 'Bewertung') {
+      rv.reply = { text: text, at: 'gerade eben' };
+      rv.status = 'answered';
+      rv.draft = null;
+    }
     U.closeDrawer();
-    U.toast('Antwort an ' + F.esc(t.customer) + ' gesendet' + (appr ? ' — der Neudruck wartet noch auf deine Freigabe' : ''));
-    DEMO.pushFeed('emma', '<b>Emma</b> hat deine Antwort an <b>' + F.esc(t.customer) + '</b> (' + F.esc(t.no) + ') gesendet.',
+    U.toast(t.channel === 'Bewertung'
+      ? 'Antwort öffentlich unter der Bewertung veröffentlicht' + (appr ? ' — die Kulanz wartet noch auf deine Freigabe' : '')
+      : 'Antwort an ' + F.esc(t.customer) + ' gesendet' + (appr ? ' — der Neudruck wartet noch auf deine Freigabe' : ''));
+    DEMO.pushFeed('emma', '<b>Emma</b> hat deine Antwort ' +
+      (t.channel === 'Bewertung' ? 'öffentlich unter der Bewertung von <b>' + F.esc(t.customer) + '</b> (' + F.esc(t.no) + ') veröffentlicht.'
+                                 : 'an <b>' + F.esc(t.customer) + '</b> (' + F.esc(t.no) + ') gesendet.'),
       { type: 'ok', text: 'Erledigt' }, 'NOR-51');
     if (appr) {
-      DEMO.pushFeed('emma', 'Hinweis: Der <b>Neudruck</b> für ' + F.esc(t.no) + ' ist damit noch nicht ausgelöst — dafür liegt die Freigabe <b>' + F.esc(appr.title) + '</b> noch bei dir.',
+      DEMO.pushFeed('emma', 'Hinweis: Die <b>Kulanz</b> für ' + F.esc(t.no) + ' ist damit noch nicht ausgelöst — dafür liegt die Freigabe <b>' + F.esc(appr.title) + '</b> noch bei dir.',
         { type: 'warn', text: 'Wartet' }, 'NOR-51');
     }
     DEMO.render();

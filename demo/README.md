@@ -11,15 +11,15 @@ Alle Daten sind erfunden. Der Reset-Knopf unten mittig stellt den Ausgangszustan
 | **Design-Studio** | Trend-Radar → Entwürfe → Freigabe → Bibliothek |
 | **Sichtbarkeit** | drei Ebenen: **Website** (Google-Ranking) · **Social** (Pinterest, Instagram, TikTok, WhatsApp-Kanal) · **Bewertungen** (Sterne) |
 | **Buchhaltung** | GuV, Belege, USt-Voranmeldung, Agenten-Kosten |
-| **Kundenservice** | Anfragen mit echten Gesprächsverläufen |
+| **Kundenservice** | Anfragen mit echten Gesprächsverläufen — kritische Bewertungen werden automatisch zum Fall (Kanal „Bewertung") |
 
 **Ranking ≠ Rating:** Das Ranking ist die Google-Position (Ebene „Website"), das Rating sind die Sterne (Ebene „Bewertungen"). Das Ranking bringt Leute in den Shop, das Rating entscheidet, ob sie kaufen. Deshalb liegen beide zusammen unter „Sichtbarkeit" — mit Social als drittem Weg, auf dem Kunden dich finden.
 
 ## Der 5-Minuten-Weg durch die Demo
 
-1. **Übersicht** — 6 Freigaben warten. Das ist der Tag des Shop-Betreibers in einem Bild.
+1. **Übersicht** — 7 Freigaben warten. Das ist der Tag des Shop-Betreibers in einem Bild.
 2. **„4 Designs live stellen"** → *Ansehen* → *Freigeben*. Der Aha-Moment: Zähler fällt, und im Feed reagiert eine Kette — Theo meldet live, **Mia** übernimmt die Metadaten, **Nele** plant Pins dazu. Ohne dass jemand sie beauftragt hat.
-3. **Freigabe „Kulanz-Neudruck #1044"** → *Freigeben*. Jetzt der stärkste Moment: Damit ist gleichzeitig die **öffentliche 2-Sterne-Bewertung** desselben Kunden beantwortet. Nachzusehen unter Sichtbarkeit → Bewertungen.
+3. **Freigabe „Kulanz-Neudruck #1044"** → *Freigeben*. Jetzt der stärkste Moment: Damit ist gleichzeitig die **öffentliche 2-Sterne-Bewertung** desselben Kunden beantwortet. Und im Kundenservice liegt Fall **#1048**, der nie eine Mail war — Emma hat ihn aus einer Bewertung angelegt. Eine Arbeitsliste, egal auf welchem Kanal die Kritik kam.
 4. **Sichtbarkeit** — die drei Ebenen durchklicken. Social zeigt, warum Pinterest bei Print-on-Demand zählt: ein Pin läuft Monate weiter.
 5. **Otto fragen** (unten rechts) — „Was kosten mich die Agenten?" oder „Wie stehen meine Bewertungen?"
 6. **Buchhaltung** — das Kaufargument: **7 Agenten = 41,20 €/Monat** gegen 2.180 € Google Ads.

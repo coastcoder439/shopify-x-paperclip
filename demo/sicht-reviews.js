@@ -157,8 +157,9 @@
       : '';
     var footHtml = r.status === 'open'
       ? '<div style="margin-top:8px;display:flex;gap:8px">' +
-          '<button class="btn ghost sm" data-act="openReview" data-arg="' + r.id + '">Entwurf ansehen</button>' +
-          '<button class="btn primary sm" data-act="openReview" data-arg="' + r.id + '">Antwort senden</button>' +
+          (r.ticket
+            ? '<button class="btn primary sm" data-act="openTicket" data-arg="' + r.ticket + '">Zum Fall im Kundenservice</button>'
+            : '<button class="btn primary sm" data-act="openReview" data-arg="' + r.id + '">Entwurf ansehen &amp; senden</button>') +
         '</div>'
       : '';
     return '<div class="rv-row' + (r.status === 'open' ? ' open' : '') + '" data-act="openReview" data-arg="' + r.id + '">' +
@@ -322,6 +323,15 @@
         '<div class="rv-reply"><div class="rv-reply-k">Antwort von Nordwind Studio · ' + F.esc(r.reply.at) + '</div>' + F.rich(r.reply.text) + '</div>';
       foot = '<button class="btn ghost" data-act="closeDrawer">Schließen</button>' +
              '<button class="btn ghost" data-act="askAgent" data-arg="emma">Emma fragen</button>';
+    } else if (r.status === 'open' && r.ticket) {
+      // Bearbeitet wird im Kundenservice — hier ist die Auswertung, dort die Arbeit.
+      // Zwei Editoren für denselben Vorgang wären genau das Gesplitte, das stört.
+      var tkOpen = DEMO.ticket(r.ticket);
+      body += notice('warn',
+        'Diese Bewertung läuft als <b>Fall ' + (tkOpen ? F.esc(tkOpen.no) : '') + '</b> im Kundenservice — ' +
+        'Emmas Antwortentwurf und die Kulanz-Entscheidung liegen dort.');
+      foot = '<button class="btn ghost" data-act="closeDrawer">Schließen</button>' +
+             '<button class="btn primary" data-act="openTicket" data-arg="' + r.ticket + '">Fall öffnen</button>';
     } else if (r.status === 'open') {
       ST.forms['rv.reply.' + id] = r.draft;
       body += '<h4 class="drawer-h">Emmas Antwortentwurf</h4>' +

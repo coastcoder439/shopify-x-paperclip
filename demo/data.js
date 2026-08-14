@@ -188,7 +188,7 @@
       role: 'commerce/support', title: 'Kundenservice', status: 'idle',
       model: 'gemma-3 (lokal)', runtime: 'kostenfrei', access: 'Lokal auf deinem Server',
       costMonth: 0, hoursSaved: 19,
-      task: 'NOR-51', now: 'Nur 2 von 38 Anfragen brauchten diese Woche dich.',
+      task: 'NOR-51', now: 'Nur 3 von 39 Anfragen brauchten diese Woche dich.',
       skills: ['Anfragen einordnen', 'Lieferstatus aus Tracking beantworten', 'Größentausch & Retoure abwickeln', 'Bei Zweifel an dich eskalieren'],
       permissions: ['Bestellungen & Tracking lesen', 'Antworten senden (Standardfälle)', 'Erstattungen nur nach Freigabe'],
       runs: [
@@ -426,6 +426,12 @@
       detail: 'Das Tracking zeigt seit dem 07.07. keinen Scan mehr. Emma hat die DHL-Nachforschung angestoßen, die dauert erfahrungsgemäß 5–10 Werktage. Sie schlägt vor, nicht darauf zu warten, sondern sofort neu zu schicken — der Kunde hat zusätzlich eine 1-Stern-Bewertung hinterlassen.',
       effect: 'Nach Freigabe: Ersatz geht mit Priorität raus, Emma antwortet dem Kunden und auf seine Bewertung.',
       impact: { revenue: -18.60, note: 'Kosten der Ersatzsendung — die Bewertung kostet mehr' } },
+    { id: 'a8', title: 'Ersatz-Hoodie für die 2★-Bewertung (#1048)', chip: 'Support · Bewertung', by: 'emma', ago: 'vor 6 Std.',
+      desc: 'Öffentliche Kritik ohne Mail-Kontakt: Druck nach 40°-Wäsche matt. Ersatz kostet 21,60 € — die Antwort erscheint für alle sichtbar unter der Bewertung.',
+      task: 'NOR-51', kind: 'support', ticketId: 'tk7',
+      detail: 'Sarah Krüger hat nicht geschrieben, sondern öffentlich bewertet — Emma hat daraus Fall #1048 gemacht. Ihre Einschätzung: 40 Grad liegen über der Pflegeempfehlung, aber der Hinweis ist auf der Produktseite leicht zu übersehen. Die Kulanz ist hier auch Außenwirkung: Die Antwort liest jeder, der das Produkt anschaut. Ida führt den Fall in ihrer Musteranalyse — Pflegehinweise sind die häufigste Kritikursache.',
+      effect: 'Nach Freigabe: Der Ersatz-Hoodie geht raus, Emma veröffentlicht die Antwort unter der Bewertung.',
+      impact: { revenue: -21.60, note: 'Druckkosten des Ersatzes — gelesen wird die Antwort von jedem künftigen Käufer' } },
     { id: 'a7', title: 'Social-Wochenplan: 10 Beiträge freigeben', chip: 'Social · Pinterest, Instagram, TikTok, WhatsApp', by: 'nele', ago: 'vor 30 Min.',
       desc: 'Nele hat die Woche geplant: 5 Pins, 3 Instagram-Beiträge, 1 TikTok, 1 WhatsApp-Broadcast — alle aus vorhandenen Designs.',
       task: 'NOR-66', kind: 'social',
@@ -485,11 +491,12 @@
   ];
 
   /* --- Kundenservice ------------------------------------------------------ */
+  // Anteile passen zur gezählten Verteilung über alle 39 Fälle (inkl. Bewertungs-Fall)
   var topics = [
     { key: 'Lieferstatus', share: 54, color: '#8B8B8B' },
-    { key: 'Größentausch', share: 22, color: '#5E6AD2' },
-    { key: 'Designwünsche', share: 11, color: '#D9739F' },
-    { key: 'Sonstiges', share: 13, color: '#C9CDD2' }
+    { key: 'Größentausch', share: 21, color: '#5E6AD2' },
+    { key: 'Designwünsche', share: 10, color: '#D9739F' },
+    { key: 'Sonstiges', share: 15, color: '#C9CDD2' }
   ];
 
   var firstNames = ['Lena', 'Jonas', 'Mara', 'Tim', 'Sophie', 'Niklas', 'Hanna', 'Erik', 'Julia', 'Ben', 'Nora', 'Lukas', 'Frieda', 'Ole', 'Clara', 'Finn', 'Mia', 'Paul', 'Ida', 'Jan', 'Emilia', 'Hendrik', 'Ronja', 'Malte', 'Greta', 'Simon', 'Alma', 'Tobias', 'Merle', 'Kai', 'Leonie', 'Arne'];
@@ -534,6 +541,15 @@
         { from: 'customer', at: 'Heute 09:04', text: 'Guten Tag, wann wird meine Bestellung geliefert? Bestellnummer NW-1046.' },
         { from: 'emma', at: 'Heute 09:05', text: 'Guten Tag Herr Kruse, Ihre Bestellung (2× Poster „Nordlicht“) ist seit gestern 14:20 unterwegs — laut DHL-Tracking ist die Zustellung für morgen zwischen 10 und 14 Uhr geplant.\n\nHier ist Ihr Link zur Sendungsverfolgung: dhl.de/…/NW-1046\n\nViele Grüße\nEmma · Nordwind Studio' }
       ], draft: null },
+    // Aus einer öffentlichen Bewertung entstanden — es gab nie eine Mail.
+    // Kritische Bewertungen legt Emma automatisch als Fall an (Kanal „Bewertung“).
+    { id: 'tk7', no: '#1048', customer: 'Sarah Krüger', topic: 'Sonstiges', channel: 'Bewertung', status: 'escalated',
+      subject: 'Öffentliche 2★-Bewertung: Druck nach dem Waschen matt', when: '09.07. 11:35', order: 'NW-1021', design: 'd07',
+      thread: [
+        { from: 'customer', at: '09.07. 11:20', text: 'Nach zweimal Waschen bei 40 Grad wirkt der Druck stumpf. Beim Shirt meiner Schwester ist das nicht passiert.' },
+        { from: 'emma', at: '09.07. 11:35', text: '[interne Notiz] Das ist keine Mail, sondern eine öffentliche 2-Sterne-Bewertung — ich habe daraus einen Fall angelegt. 40 Grad liegen über unserer Pflegeempfehlung (30 Grad, auf links), aber der Hinweis ist auf der Produktseite leicht zu übersehen. Mein Entwurf enthält einen Ersatz-Hoodie (21,60 € Druckkosten) → deine Entscheidung. Die Antwort erscheint öffentlich unter der Bewertung.' }
+      ],
+      draft: 'Hallo Sarah,\n\n40 Grad sind für den Druck schon grenzwertig — empfohlen sind 30 Grad auf links und kein Trockner. Das steht bei uns bisher nur klein auf der Produktseite, das ändern wir.\n\nWeil der Hinweis bei Ihnen untergegangen ist, schicken wir Ihnen einen neuen Hoodie. Behalten Sie den alten gern als Arbeitsstück.\n\nViele Grüße\nNordwind Studio' },
     { id: 'tk6', no: '#1043', customer: 'Niklas Lorenz', topic: 'Sonstiges', channel: 'E-Mail', status: 'solved',
       subject: 'Rechnung für die Steuer', when: 'Gestern 11:12', order: 'NW-1043', design: null,
       thread: [
@@ -730,7 +746,7 @@
       reply: null,
       draft: 'Hallo Jonas,\n\ndie Sendung hängt seit sechs Tagen im Depot fest — dafür gibt es keine gute Erklärung, und der Ärger ist berechtigt.\n\nWir haben Ihre Bestellung heute neu und mit Priorität rausgeschickt, versandkostenfrei. Um die verschollene Sendung kümmern wir uns selbst.\n\nViele Grüße\nNordwind Studio' },
     { id: 'rv3', design: 'd07', product: 'Wild & Frei Hoodie', stars: 2, author: 'Sarah K.',
-      when: '09.07. 11:20', title: 'Druck nach dem Waschen matt', source: 'Shopify', ticket: null, status: 'open',
+      when: '09.07. 11:20', title: 'Druck nach dem Waschen matt', source: 'Shopify', ticket: 'tk7', status: 'open',
       text: 'Nach zweimal Waschen bei 40 Grad wirkt der Druck stumpf. Beim Shirt meiner Schwester ist das nicht passiert.',
       reply: null,
       draft: 'Hallo Sarah,\n\n40 Grad sind für den Druck schon grenzwertig — empfohlen sind 30 Grad auf links und kein Trockner. Das steht bei uns bisher nur klein auf der Produktseite, das ändern wir.\n\nWeil der Hinweis bei Ihnen untergegangen ist, schicken wir Ihnen einen neuen Hoodie. Behalten Sie den alten gern als Arbeitsstück.\n\nViele Grüße\nNordwind Studio' },
@@ -855,13 +871,13 @@
     { keys: ['rohertrag', 'marge', 'gewinn', 'verdiene', 'ertrag'],
       answer: 'Der Rohertrag von **{gross30} €** ist Umsatz minus Druckkosten minus Zahlungsgebühren:\n\n{rev30} € − {print30} € (Printful) − {fees30} € (Shopify/PayPal) = **{gross30} €**, also {margin} %.\n\nDas ist für Print-on-Demand ordentlich: Poster liegen bei rund 58 % Marge, Shirts bei 51 % — und dein Poster-Anteil wächst.\n\nDavon gehen noch {ads30} € Werbung, 149 € Software und {agentCost} € Agenten ab. Bleibt ein Betriebsergebnis von rund **{operating} €**.' },
     { keys: ['freigabe', 'freigeben', 'liegt bei mir', 'offen', 'genehmig', 'warten'],
-      answer: 'Bei dir liegen **{openApprovals} Freigaben**. Der Reihe nach, wie ich sie sortieren würde:\n\n1. **Theos 4 Designs „Nordic Trails“** — 24 fertige Listings. Größter Hebel, kostet dich einen Klick.\n2. **Emmas zwei Support-Fälle** — ein Neudruck (12,40 €) und eine Ersatzsendung (18,60 €). Beide Kunden warten, einer hat schon einen Stern gegeben.\n3. **Neles Social-Wochenplan** — 9 Beiträge aus vorhandenen Designs, nichts Neues zu produzieren.\n4. **Karlas USt-Voranmeldung** — Frist ist der 10.08., das eilt heute nicht.\n5. **Mias Blogartikel** — SEO wirkt ohnehin erst in Wochen.\n\nWenn du nur zwei Sachen machst: die Designs und die beiden Kunden.' },
+      answer: 'Bei dir liegen **{openApprovals} Freigaben**. Der Reihe nach, wie ich sie sortieren würde:\n\n1. **Theos 4 Designs „Nordic Trails“** — 24 fertige Listings. Größter Hebel, kostet dich einen Klick.\n2. **Emmas drei Support-Fälle** — Neudruck (12,40 €), Ersatzsendung (18,60 €) und ein Ersatz-Hoodie für eine öffentliche 2★-Bewertung (21,60 €). Alle drei Kunden warten, zwei davon öffentlich sichtbar.\n3. **Neles Social-Wochenplan** — 9 Beiträge aus vorhandenen Designs, nichts Neues zu produzieren.\n4. **Karlas USt-Voranmeldung** — Frist ist der 10.08., das eilt heute nicht.\n5. **Mias Blogartikel** — SEO wirkt ohnehin erst in Wochen.\n\nWenn du nur zwei Sachen machst: die Designs und die beiden Kunden.' },
     { keys: ['ranking', 'seo', 'google', 'keyword', 'position', 'verliere'],
       answer: 'Verloren hast du eigentlich nur an einer Stelle: **„maritime deko poster“** ist von 18 auf 21 gefallen, weil ein Wettbewerber eine neue Seite gebaut hat. Das Keyword hängt an „Seemannsgarn“, das ohnehin ausläuft — ich würde es ziehen lassen.\n\nSonst geht es nach oben: {top10} Keywords stehen in den Top 10, {top10Delta} mehr als im Vormonat. Am stärksten: „trail running shirt retro“ von 41 auf 8 — das kam mit dem neuen Design.\n\nMia hat zwei Vorschläge offen: Alt-Texte für 38 Bilder (8 Min. Arbeit) und der Ausbau der Hoodie-Seite.' },
     { keys: ['trend', 'nische', 'neue', 'ida', 'radar'],
       answer: 'Ida hat heute früh **„Retro Trail Running“** gemeldet: +140 % Suchinteresse in 90 Tagen, 4.800 Suchanfragen im Monat, und auf Etsy nur 340 konkurrierende Listings. Sie hat direkt einen Design-Brief geschrieben, Theo hat daraus vier Entwürfe gemacht — die liegen bei dir zur Freigabe.\n\nZwei weitere Nischen beobachtet sie noch: „Slow Hiking“ (+64 %, Konkurrenz zieht an) und „Nordische Minimal-Karten“ (+38 %, aber Preisverfall).\n\nDas ist übrigens genau der Kreislauf: Ida findet, Theo baut, du entscheidest.' },
     { keys: ['support', 'kunden', 'emma', 'anfragen', 'tickets'],
-      answer: 'Emma hat in den letzten 7 Tagen **{ticketsTotal} Anfragen** bearbeitet und {ticketsSolved} davon selbst gelöst — das sind {solveRate} %.\n\nÜber die Hälfte davon sind Lieferstatus-Fragen, die sie direkt aus dem Tracking beantwortet. Ø Erstantwort: 4 Minuten.\n\n**{ticketsOpen} Fälle liegen bei dir**: der Farbfehler bei #1044 und die verschollene Sendung #1047. Beides Fälle, wo Geld fließt — deshalb fragt sie nach.' },
+      answer: 'Emma hat in den letzten 7 Tagen **{ticketsTotal} Anfragen** bearbeitet und {ticketsSolved} davon selbst gelöst — das sind {solveRate} %.\n\nÜber die Hälfte davon sind Lieferstatus-Fragen, die sie direkt aus dem Tracking beantwortet. Ø Erstantwort: 4 Minuten. Und: **Aus kritischen Bewertungen macht sie automatisch einen Fall** — deshalb steht #1048 in der Liste, obwohl nie eine Mail kam.\n\n**{ticketsOpen} Fälle liegen bei dir**: der Farbfehler bei #1044, die verschollene Sendung #1047 und die öffentliche 2★-Bewertung #1048. Alles Fälle, wo Geld fließt — deshalb fragt sie nach.' },
     { keys: ['buchhaltung', 'karla', 'belege', 'steuer', 'ustva', 'umsatzsteuer', 'datev'],
       answer: 'Karla hat im Juli **{receipts} Belege** automatisch erfasst und zugeordnet — Druckkosten, Gebühren, Werbung und die Abos.\n\nEinen konnte sie nicht sicher zuordnen: **Nordisk Papir A/S über 184 €**. Da wartet sie auf dein Konto, das findest du in der Buchhaltung.\n\nDie **USt-Voranmeldung für Juni** liegt fertig bei dir: Zahllast **{ustvaPay}**, gerechnet aus {receiptsJune} Belegen und gegen die Payouts geprüft. Übermittelt wird erst, wenn du freigibst.' },
     { keys: ['sicher', 'kontrolle', 'selbst', 'ohne mich', 'dürfen', 'rechte'],
@@ -873,7 +889,7 @@
     { keys: ['social', 'pinterest', 'instagram', 'tiktok', 'nele', 'follower', 'reichweite', 'posten'],
       answer: 'Social bringt dir **{socialSessions} Sitzungen** in 30 Tagen — 15 % deines Traffics — und rund **{socialRevenue} €** Umsatz.\n\nDie Verteilung ist eindeutig: **Pinterest** macht die Hälfte davon. Ein Pin läuft im Schnitt acht Monate weiter, ein Instagram-Bild ist nach zwei Tagen tot. Deshalb hat Nele das Gewicht dorthin verschoben.\n\nDer spannendste Kanal ist aber der kleinste: der **WhatsApp-Kanal** hat nur 380 Abonnenten, bringt mit 10 % des Social-Traffics aber 14 % des Social-Umsatzes — wer da drin ist, will kaufen. **TikTok** wächst am schnellsten (+184 Follower im Monat), verkauft aber am wenigsten.\n\nIhr **Wochenplan mit 10 Beiträgen** liegt bei dir zur Freigabe. Nichts davon muss neu produziert werden, alles baut auf Designs, die du schon hast.' },
     { keys: ['bewertung', 'sterne', 'rating', 'rezension', 'kritik', 'unzufrieden', 'beschwer'],
-      answer: 'Dein Shop steht bei **{ratingAvg} von 5 Sternen** aus {reviewCount} Bewertungen — das sind {reviewRate} % deiner Bestellungen, ein normaler Wert.\n\n**{reviewsOpen} Bewertungen warten auf eine Antwort**, alle mit drei Sternen oder weniger. Emma hat für jede einen Entwurf geschrieben, sendet aber nicht selbst: Bei Kritik steht ein Kulanzangebot im Text, und das ist deine Entscheidung.\n\nInteressanter als die Sterne ist das Muster dahinter: Ida hat die kritischen Bewertungen sortiert — **nur zwei davon betreffen einen echten Fehler** (ein Fehldruck, ein verschollenes Paket). Der Rest sind Erwartungen an Pflege und Motivgröße. Das ist kein Design-Problem, sondern eine Zeile auf der Produktseite.' },
+      answer: 'Dein Shop steht bei **{ratingAvg} von 5 Sternen** aus {reviewCount} Bewertungen — das sind {reviewRate} % deiner Bestellungen, ein normaler Wert.\n\n**{reviewsOpen} Bewertungen warten auf eine Antwort**, alle mit drei Sternen oder weniger — und alle drei laufen als **Fälle im Kundenservice**, denn aus kritischen Bewertungen macht Emma automatisch einen Vorgang. Beantwortet wird über die Freigaben, weil in jedem Entwurf ein Kulanzangebot steht — und das ist deine Entscheidung.\n\nInteressanter als die Sterne ist das Muster dahinter: Ida hat die kritischen Bewertungen sortiert — **nur zwei davon betreffen einen echten Fehler** (ein Fehldruck, ein verschollenes Paket). Der Rest sind Erwartungen an Pflege und Motivgröße. Das ist kein Design-Problem, sondern eine Zeile auf der Produktseite.' },
     { keys: ['ranking oder rating', 'unterschied', 'ranking rating'],
       answer: 'Zwei verschiedene Dinge, die oft verwechselt werden:\n\n**Ranking** ist deine Position bei Google — Platz 1 bis 100. Daran arbeitet Mia. Aktuell: {top10} Keywords in den Top 10.\n\n**Rating** sind die Sterne, die Kunden dir geben. Aktuell {ratingAvg} von 5. Darum kümmert sich Emma.\n\nDer Zusammenhang: Das Ranking bringt Leute in den Shop, das Rating entscheidet, ob sie kaufen. Beides findest du unter **Sichtbarkeit** — zusammen mit Social, dem dritten Weg, auf dem dich Leute finden.' },
     { keys: ['printful', 'druck', 'lieferant', 'produktion'],
