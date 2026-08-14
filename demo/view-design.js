@@ -36,6 +36,8 @@
       : 'M1 9 Q12 8 20 9 T34 8 T45 8';
     return '<svg class="spark' + cls + '" width="46" height="16" viewBox="0 0 46 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="' + path + '"/></svg>';
   }
+  // Kürzt lange Agent-Hinweise für einzeilige Tabellenzeilen — voller Text bleibt im openDesign-Drawer.
+  function truncate(s, n) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
   function trendPill(t) {
     if (t.status === 'briefed') return '<span class="pill working"><span class="p-dot"></span>Brief an Theo</span>';
     if (t.status === 'live') return '<span class="pill working"><span class="p-dot"></span>live</span>';
@@ -79,30 +81,24 @@
   }
 
   /* --- 2. Trend-Radar ------------------------------------------------------- */
+  // Disclosure-Maß: Name, Score-Balken, Pill, EIN kv-Wert — Rest (Volumen, Konkurrenz,
+  // gefunden-Zeitpunkt, Tiefer-prüfen/Entwürfe-Aktionen) wandert in den dz.trend-Drawer.
+  // Die ganze Karte ist die Klickfläche (data-act direkt auf .card) statt eines Detail-Buttons.
   function trendCard(t) {
-    var foot = '<button class="btn ghost sm" data-act="dz.trend" data-arg="' + t.id + '">Details</button>';
-    if (t.status === 'briefed') {
-      foot += '<button class="btn primary sm" data-act="dz.toDrafts">Entwürfe ansehen</button>';
-    } else if (t.status === 'watch') {
-      foot += t.deep
-        ? '<span class="feed-flag warn">geprüft: kein Einstieg</span>'
-        : '<button class="btn ghost sm" data-act="dz.deep" data-arg="' + t.id + '">Tiefer prüfen</button>';
-    }
-    return '<div class="card card-pad">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
-          '<span style="font-size:14px;font-weight:600">' + F.esc(t.name) + '</span>' + trendPill(t) +
+    return '<div class="card" data-act="dz.trend" data-arg="' + t.id + '">' +
+        '<div class="card-pad">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
+            '<span style="font-size:14px;font-weight:600">' + F.esc(t.name) + '</span>' + trendPill(t) +
+          '</div>' +
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 4px">' +
+            '<span class="kv-k">Score</span><span class="mono" style="font-size:12px">' + t.score + '/100</span>' +
+          '</div>' +
+          '<div class="prog"><i style="width:' + t.score + '%"></i></div>' +
         '</div>' +
-        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 4px">' +
-          '<span class="kv-k">Score</span><span class="mono" style="font-size:12px">' + t.score + '/100</span>' +
+        '<div class="peek" style="margin-top:auto">' +
+          '<span class="peek-label">Suchinteresse</span>' +
+          '<span class="peek-value"><span class="trend up">' + F.esc(t.growth) + '</span></span>' +
         '</div>' +
-        '<div class="prog"><i style="width:' + t.score + '%"></i></div>' +
-        '<div style="margin-top:6px">' +
-          '<div class="kv-row"><span class="kv-k">Suchinteresse</span><span class="kv-v"><span class="trend up">' + F.esc(t.growth) + '</span></span></div>' +
-          '<div class="kv-row"><span class="kv-k">Volumen</span><span class="kv-v">' + F.num(t.volume) + '/Monat</span></div>' +
-          '<div class="kv-row"><span class="kv-k">Konkurrenz</span><span class="kv-v">' + F.esc(t.competition) + '</span></div>' +
-        '</div>' +
-        '<div class="hint">' + F.esc(t.found) + '</div>' +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">' + foot + '</div>' +
       '</div>';
   }
   function trendSection(S) {
@@ -129,7 +125,7 @@
   function draftsSection(S) {
     var open = S.drafts.filter(function (d) { return d.status === 'draft'; });
     var body = open.length
-      ? '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">' + open.map(draftCard).join('') + '</div>'
+      ? '<div class="post-grid">' + open.map(draftCard).join('') + '</div>'
       : '<div class="empty"><div class="empty-t">Alle Entwürfe sind live</div>' +
         '<div>Theo wartet auf den nächsten Brief von Ida.</div>' +
         '<div style="margin-top:10px"><button class="btn ghost sm" data-act="dz.toLib">Zur Design-Bibliothek</button></div></div>';
@@ -236,7 +232,7 @@
         '<td>' + d.listings + '</td>' +
         '<td class="rev">' + F.eur(d.revenue30) + '</td>' +
         '<td>' + sparkSvg(d.trend) + '</td>' +
-        '<td class="agent-hint">' + F.esc(d.note) + '</td>' +
+        '<td class="agent-hint" style="white-space:nowrap">' + F.esc(truncate(d.note, 46)) + '</td>' +
       '</tr>';
   }
   function libEmpty(q) {
@@ -340,9 +336,20 @@
   A['dz.trend'] = function (id) {
     var t = DEMO.trend(id);
     if (!t) return;
+    // Alles, was die Karte nicht mehr zeigt (Volumen, Konkurrenz, gefunden-Zeitpunkt,
+    // Tiefer-geprüft-Ergebnis) plus die Status-Aktionen leben jetzt hier im Drawer.
+    var res = DEEP_RESULT[id];
+    var deepNotice = (t.status === 'watch' && t.deep && res)
+      ? '<div class="notice warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg><span>' + res.text + '</span></div>'
+      : '';
+    var footBtn = t.status === 'briefed'
+      ? '<button class="btn primary" data-act="dz.toDrafts">Entwürfe ansehen</button>'
+      : (t.status === 'watch' && !t.deep ? '<button class="btn primary" data-act="dz.deep" data-arg="' + t.id + '">Tiefer prüfen</button>' : '');
     U.drawer({
+      trendId: id,
       title: t.name, sub: 'gefunden ' + F.esc(t.found),
       body: '<p class="lead">' + F.esc(t.why) + '</p>' +
+        deepNotice +
         '<div class="drawer-grid">' +
           '<div class="mini"><div class="mini-k">Score</div><div class="mini-v">' + t.score + '/100</div></div>' +
           '<div class="mini"><div class="mini-k">Wachstum</div><div class="mini-v">' + F.esc(t.growth) + '</div></div>' +
@@ -350,8 +357,7 @@
           '<div class="mini"><div class="mini-k">Konkurrenz</div><div class="mini-v">' + F.esc(t.competition) + '</div></div>' +
         '</div>' +
         '<h4 class="drawer-h">Design-Brief an Theo</h4><div class="excerpt">' + F.rich(t.brief) + '</div>',
-      foot: '<button class="btn ghost" data-act="closeDrawer">Schließen</button>' +
-        (t.status === 'briefed' ? '<button class="btn primary" data-act="dz.toDrafts">Entwürfe ansehen</button>' : '')
+      foot: '<button class="btn ghost" data-act="closeDrawer">Schließen</button>' + footBtn
     });
   };
 
@@ -373,6 +379,8 @@
         t.deep = true;
         DEMO.pushFeed('ida', '<b>Ida</b> hat <b>„' + F.esc(t.name) + '"</b> tiefer geprüft — Empfehlung: ' + res.short + '.', null, null);
         if (DEMO.state.tab === 'design') DEMO.render();
+        // Trend-Drawer war die einzige Quelle für diese Aktion — steht er noch offen, frisch neu zeichnen.
+        if (DEMO.state.drawer && DEMO.state.drawer.trendId === id) A['dz.trend'](id);
       }
     });
   };

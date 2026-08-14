@@ -21,14 +21,18 @@
     return d ? 'background:linear-gradient(135deg,' + d.g1 + ',' + d.g2 + ')' : 'background:var(--muted)';
   }
   // Eine Beitrags-/Planzeile — von der Wochenplan-Sektion und den Kanal-Drawern geteilt.
+  // Einzeilig: Titel + Kanal/Art/Termin in EINER Zeile, mit Ellipsis statt
+  // Umbruch — flex:1/min-width:0 macht die Kürzung im flex-row möglich.
   function planRow(p) {
     var ch = channel(p.channel);
     var d = DEMO.design(p.design);
+    var meta = (ch ? F.esc(ch.name) : '—') + ' · ' + F.esc(p.kind) + ' · ' + F.esc(p.when);
     return '<div class="plan-row" data-act="openPost" data-arg="' + p.id + '">' +
       '<span class="ch-dot" style="background:' + (ch ? ch.color : '#999') + '"></span>' +
-      '<span class="plan-main"><b>' + F.esc(p.title) + '</b><span class="plan-sub">' +
-        (ch ? F.esc(ch.name) : '—') + ' · ' + F.esc(p.kind) + ' · ' + F.esc(p.when) + '</span></span>' +
-      '<span style="margin-left:auto;width:20px;height:20px;border-radius:6px;flex:none;' + swatch(d) + '"></span>' +
+      '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;color:var(--muted-fg)">' +
+        '<b style="font-weight:600;color:var(--fg-strong)">' + F.esc(p.title) + '</b> · ' + meta +
+      '</span>' +
+      '<span style="width:20px;height:20px;border-radius:6px;flex:none;' + swatch(d) + '"></span>' +
     '</div>';
   }
 
@@ -81,10 +85,13 @@
   }
 
   /* --- Block 3: Kanäle --------------------------------------------------------*/
-  function channelCard(k, S) {
+  // Progressive Disclosure: Kernzahl (Sitzungen + Traffic-Anteil) + 2 kv-Zeilen
+  // (Umsatz, Bestellungen — die Umsatzkette). Follower-Zuwachs, Beiträge-Zahl
+  // und der Rollen-Satz (ch.role) wandern in den so.channel-Drawer, nichts
+  // verschwindet. Ganze Karte ist die Klickfläche (data-act auf .card).
+  function channelCard(k) {
     var ch = k.ch;
-    var postsN = Math.round(ch.posts30 * S.range / 30);
-    return '<div class="card">' +
+    return '<div class="card" data-act="so.channel" data-arg="' + ch.id + '">' +
       '<div class="card-head"><div class="ch-head"><span class="ch-dot" style="background:' + ch.color + '"></span>' +
         '<span class="ch-name">' + F.esc(ch.name) + '</span></div>' +
         '<span class="card-title-note">' + F.num(ch.followers) + ' ' + (ch.audienceLabel || 'Follower') + '</span></div>' +
@@ -93,20 +100,16 @@
         '<div class="stat-sub">Sitzungen · ' + F.pct0(ch.share) + ' des Social-Traffics</div>' +
         '<div class="kv-row"><span class="kv-k">Umsatz</span><span class="kv-v">' + F.eur(k.revenue) + '</span></div>' +
         '<div class="kv-row"><span class="kv-k">Bestellungen</span><span class="kv-v">' + F.num(k.orders) + '</span></div>' +
-        '<div class="kv-row"><span class="kv-k">' + (ch.audienceLabel === 'Abonnenten' ? 'Abonnenten-Zuwachs' : 'Follower-Zuwachs') + '</span><span class="kv-v">' + F.signNum(ch.growth) + '</span></div>' +
-        '<div class="kv-row"><span class="kv-k">Beiträge</span><span class="kv-v">' + F.num(postsN) + '</span></div>' +
-        '<p class="hint">' + F.esc(ch.role) + '</p>' +
       '</div>' +
       '<div class="card-foot">' +
-        '<button class="btn ghost sm" data-act="so.channel" data-arg="' + ch.id + '">Details</button>' +
-        '<button class="btn ghost sm" data-act="openConnector" data-arg="' + ch.id + '">Verbindung</button>' +
+        '<button class="btn ghost sm" style="margin-left:auto" data-act="openConnector" data-arg="' + ch.id + '">Verbindung</button>' +
       '</div>' +
     '</div>';
   }
 
   function renderChannels(S) {
     var so = DEMO.socialStats(S.range);
-    var cards = so.kanaele.map(function (k) { return channelCard(k, S); }).join('');
+    var cards = so.kanaele.map(channelCard).join('');
     return '<div class="section-head"><div><div class="section-title">Kanäle</div>' +
       '<div class="section-sub">Wo deine Reichweite herkommt · ' + S.range + ' Tage</div></div></div>' +
       // 4 Kanäle seit dem WhatsApp-Zugang — trio-grid würde 3+1 stapeln
@@ -124,7 +127,7 @@
         '<span>' + F.esc(dname) + '</span>' +
       '</div>' +
       '<div class="post-body">' +
-        '<div class="post-title">' + F.esc(p.title) + '</div>' +
+        '<div class="post-title" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + F.esc(p.title) + '</div>' +
         '<div class="post-meta">' +
           '<span style="display:inline-flex;align-items:center;gap:4px"><span class="ch-dot" style="background:' +
             (ch ? ch.color : '#999') + '"></span>' + (ch ? F.esc(ch.name) : '—') + '</span>' +
@@ -304,7 +307,8 @@
         '<div class="mini"><div class="mini-k">Bestellungen</div><div class="mini-v">' + F.num(k.orders) + '</div></div>' +
         '<div class="mini"><div class="mini-k">Beiträge</div><div class="mini-v">' + F.num(postsN) + '</div></div>' +
       '</div>' +
-      '<p class="lead">' + F.esc(ch.note) + '</p>' +
+      '<p class="lead">' + F.esc(ch.role) + '</p>' +
+      '<p class="hint">' + F.esc(ch.note) + '</p>' +
       '<h4 class="drawer-h">Beiträge auf diesem Kanal</h4>' +
       (ownPosts.length ? '<div class="plan-list">' + ownPosts.map(planRow).join('') + '</div>' : '<p class="hint">—</p>') +
       '<h4 class="drawer-h">Geplant</h4>' +

@@ -116,7 +116,6 @@
 
   /* --- Block 4: Design-Pipeline ---------------------------------------------- */
   function blockPipeline(S) {
-    var t0 = S.trends[0];
     var draftItems = S.drafts.filter(function (d) { return d.status === 'draft'; });
     var openDesignApprovals = DEMO.openApprovals().filter(function (a) { return a.kind === 'designs'; });
     var newDesigns = S.designs.filter(function (d) { return d.status === 'new'; });
@@ -124,26 +123,26 @@
     var newRevenue = newDesigns.reduce(function (s, d) { return s + d.revenue30; }, 0);
     var a = openDesignApprovals[0];
 
-    var col1 = '<div class="pipeline-col"><div class="stage-label">TREND-RADAR</div>' +
-      '<div class="stage-num">' + S.trends.length + '</div><div class="stage-sub">heiße Nischen erkannt</div>' +
-      '<div class="feed-flag warn" data-act="setTab" data-arg="design">' + t0.name + ' ' + t0.growth + '</div></div>';
+    // Jede Spalte ist jetzt selbst die Klickfläche (ganze Spalte, nicht nur ein
+    // Symbol) — Fläche zeigt nur Kernzahl + eine Zeile, der Rest (Trend-Namen,
+    // volle Freigabe-Details) steckt hinter dem Klick im passenden Reiter/Drawer.
+    var col1 = '<div class="pipeline-col" data-act="setTab" data-arg="design"><div class="stage-label">TREND-RADAR</div>' +
+      '<div class="stage-num">' + S.trends.length + '</div><div class="stage-sub">heiße Nischen erkannt →</div></div>';
 
-    var col2 = '<div class="pipeline-col"><div class="stage-label">ENTWÜRFE</div>' +
+    var col2 = '<div class="pipeline-col" data-act="setTab" data-arg="design"><div class="stage-label">ENTWÜRFE</div>' +
       '<div class="stage-num">' + draftItems.length + '</div>' +
       '<div class="stage-sub">' + (draftItems.length ? 'von Theo gerendert' : 'alle freigegeben') + '</div>' +
-      (draftItems.length ? '<div class="pipe-thumbs">' + draftItems.map(function (d) {
+      (draftItems.length ? '<div class="pipe-thumbs">' + draftItems.slice(0, 6).map(function (d) {
         return '<div class="pipe-thumb" data-act="openDraft" data-arg="' + d.id + '" style="background:linear-gradient(135deg,' + d.g1 + ',' + d.g2 + ');color:rgba(255,255,255,.92)">' + d.initials + '</div>';
-      }).join('') + '</div>' : '') + '</div>';
+      }).join('') + (draftItems.length > 6 ? '<div class="pipe-thumb" style="background:var(--muted);color:var(--muted-fg)">+' + (draftItems.length - 6) + '</div>' : '') + '</div>' : '') + '</div>';
 
-    var col3 = '<div class="pipeline-col"><div class="stage-label">WARTET AUF FREIGABE</div>' +
+    var col3 = '<div class="pipeline-col"' + (a ? ' data-act="openApproval" data-arg="' + a.id + '"' : '') + '><div class="stage-label">WARTET AUF FREIGABE</div>' +
       '<div class="stage-num">' + openDesignApprovals.length + '</div>' +
-      '<div class="stage-sub">' + (a ? truncate(a.title, 34) : 'nichts offen') + '</div>' +
-      (a ? '<div class="task-ref" data-act="openTask" data-arg="' + a.task + '">' + a.task + '</div>' : '') + '</div>';
+      '<div class="stage-sub">' + (a ? truncate(a.title, 32) + ' →' : 'nichts offen') + '</div></div>';
 
-    var col4 = '<div class="pipeline-col"><div class="stage-label">DIESE WOCHE LIVE</div>' +
+    var col4 = '<div class="pipeline-col" data-act="setTab" data-arg="design"><div class="stage-label">DIESE WOCHE LIVE</div>' +
       '<div class="stage-num">' + newDesigns.length + '</div>' +
-      '<div class="stage-sub">Designs · ' + newListings + ' Listings</div>' +
-      (newRevenue ? '<div class="trend up">' + arrowSvg(true) + ' +' + F.eur(newRevenue) + ' Umsatz aus Neustarts</div>' : '') + '</div>';
+      '<div class="stage-sub">' + newListings + ' Listings' + (newRevenue ? ' <span class="trend up">' + arrowSvg(true) + ' +' + F.eur(newRevenue) + '</span>' : '') + '</div></div>';
 
     return '<div class="section-head"><div><div class="section-title">Design-Pipeline</div>' +
       '<div class="section-sub">Recherche → Entwurf → Freigabe → Shop · betrieben von Ida &amp; Theo</div></div>' +
@@ -153,12 +152,13 @@
 
   /* --- Block 5: Automatisiert im Hintergrund --------------------------------- */
   function blockTrio(S) {
-    var topKw = S.keywords.slice().sort(function (a, b) { return (b.prev - b.pos) - (a.prev - a.pos); }).slice(0, 3);
     var doneSeo = S.seoTasks.filter(function (t) { return t.status === 'done'; }).length;
     var reviewContent = S.contentPlan.filter(function (c) { return c.status === 'review'; }).length;
     var avgPos = (S.keywords.reduce(function (s, k) { return s + k.pos; }, 0) / S.keywords.length).toFixed(1).replace('.', ',');
 
     // Teaser für den Sichtbarkeits-Reiter: drei Wege, auf denen Kunden zu dir finden.
+    // Schon 3 knappe Zeilen (eine je Kanal) — passt in den 3-4-Zeilen-Rahmen,
+    // bleibt unangetastet.
     var so = DEMO.socialStats(S.range);
     var rv = DEMO.reviewStats();
     var top10n2 = DEMO.top10();
@@ -182,36 +182,28 @@
       '</div>' +
       '<div class="card-foot"><span>' + doneSeo + ' Metas optimiert · ' + reviewContent + ' Blogartikel in Freigabe</span>' +
       '<span data-act="ov.sicht" data-arg="website">Alle drei Ebenen →</span></div></div>';
-    void topKw;
 
+    // Buchhaltung/Support sind schon Sprungflächen (ganze Karte → Reiter) —
+    // Fläche zeigt nur Kernwert + 3 Zeilen, die volle Aufschlüsselung (GuV im
+    // Detail, Themen-Verteilung) wohnt im jeweiligen Reiter.
     var ms = DEMO.monthSums(6);
     var buchCard = '<div class="card" data-act="setTab" data-arg="buchhaltung"><div class="card-head"><div>' +
       '<div class="card-title">Buchhaltung · Juli</div><div class="card-title-note">Shopify · Printful · DATEV</div></div></div>' +
       '<div class="card-pad"><div class="hint" style="margin:0 0 8px">Erfasst: ' + ms.days + ' von 31 Tagen</div>' +
-      '<div class="guv"><div class="guv-row"><span>Einnahmen</span><span class="amt">' + F.eur(ms.revenue) + '</span></div>' +
-      '<div class="guv-row"><span>Druckkosten (Printful)</span><span class="amt">−' + F.eur(ms.print) + '</span></div>' +
-      '<div class="guv-row"><span>Gebühren (Shopify, PayPal)</span><span class="amt">−' + F.eur(ms.fees) + '</span></div>' +
-      '<div class="guv-row total"><span>Rohertrag</span><span class="amt">' + F.eur(ms.gross) + ' · ' + F.pct0(ms.margin) + '</span></div></div>' +
+      '<div class="stat-big">' + F.eur(ms.gross) + '</div>' +
+      '<div class="stat-sub">Rohertrag · Marge ' + F.pct0(ms.margin) + ' · Einnahmen ' + F.eur(ms.revenue) + '</div></div>' +
       '<div class="chip-row">' +
       '<span class="feed-flag ok">' + D.receipts[6].length + ' Belege automatisch erfasst</span>' +
       '<span class="feed-flag ok">DATEV-Export Juni ✓</span>' +
       (S.ustva === 'draft' ? '<span class="feed-flag warn">USt-VA Juni: Entwurf bereit</span>' : '<span class="feed-flag ok">USt-VA Juni übermittelt ✓</span>') +
-      '</div></div></div>';
+      '</div></div>';
 
     var ts = DEMO.ticketStats();
-    var topTopics = D.topics.slice().sort(function (a, b) { return b.share - a.share; }).slice(0, 3);
-    var maxTopic = Math.max.apply(null, D.topics.map(function (t) { return t.share; }));
     var supportCard = '<div class="card" data-act="setTab" data-arg="support"><div class="card-head"><div>' +
       '<div class="card-title">Kundenservice · 7 Tage</div><div class="card-title-note">Shopify Inbox · E-Mail</div></div></div>' +
       '<div class="card-pad"><div class="stat-big">' + F.pct0(ts.rate) + '</div>' +
       '<div class="stat-sub">automatisch gelöst (' + ts.solved + ' von ' + ts.total + ' Anfragen)</div>' +
-      '<div class="kv-row"><span class="kv-k">Ø Erstantwort</span><span class="kv-v">' + D.fixed.firstReply + '</span></div>' +
-      '<div class="kv-row"><span class="kv-k">Zufriedenheit mit Emma</span><span class="kv-v">' + D.fixed.satisfaction + '</span></div>' +
-      '<div class="traffic" style="margin-top:8px">' + topTopics.map(function (t) {
-        return '<div class="traffic-row"><div class="traffic-name">' + t.key + '</div>' +
-          '<div class="traffic-bar"><i style="width:' + ((t.share / maxTopic) * 100).toFixed(0) + '%;background:' + t.color + '"></i></div>' +
-          '<div class="traffic-val">' + t.share + '%</div></div>';
-      }).join('') + '</div></div>' +
+      '<div class="hint" style="margin-top:8px">Ø Erstantwort ' + D.fixed.firstReply + ' · Zufriedenheit mit Emma ' + D.fixed.satisfaction + '</div></div>' +
       '<div class="card-foot"><span>' + ts.open + ' Eskalation' + (ts.open === 1 ? '' : 'en') + ' offen → Kundenservice</span></div></div>';
 
     return '<div class="section-head"><div><div class="section-title">Automatisiert im Hintergrund</div>' +
@@ -221,6 +213,9 @@
 
   /* --- Block 6: Commerce-Team -------------------------------------------------- */
   function blockTeam() {
+    // Kompakt: Avatar, Name, Rolle, Pill, eine Zeile — Modell/Laufzeit/Task
+    // liegen komplett im Agenten-Drawer (openAgent zeigt beides prominent),
+    // die ganze Karte öffnet ihn.
     return '<div class="section-head"><div><div class="section-title">Dein Commerce-Team</div>' +
       '<div class="section-sub">' + D.agents.length + ' Agenten · einer je Aufgabenbereich</div></div>' +
       '<div class="section-action" data-act="openChat">' + ICON_CHAT + ' Otto im Chat fragen</div></div>' +
@@ -230,26 +225,27 @@
           '<span class="agent-name">' + a.name + '</span><span class="agent-open">' + arrowSvg(true) + '</span></div>' +
           '<div class="agent-role">' + a.role + '</div>' +
           '<span class="pill ' + a.status + '"><span class="p-dot"></span>' + (a.statusLabel || a.status) + '</span>' +
-          '<div class="agent-model">' + a.model + '<br>' + a.runtime + '</div>' +
-          '<div class="agent-last">' + truncate(a.now, 60) +
-          '<div class="task-line"><span class="task-ref" data-act="openTask" data-arg="' + a.task + '">' + a.task + '</span></div></div>' +
+          '<div class="agent-last">' + truncate(a.now, 60) + '</div>' +
           '</div>';
       }).join('') + '</div>';
   }
 
   /* --- Block 7: Feed & Freigaben ------------------------------------------------ */
   function blockDuo(S) {
-    var rows = S.feed.slice(0, S.feedExpanded ? S.feed.length : 6).map(DEMO.feedRowHtml).join('');
+    var rows = S.feed.slice(0, S.feedExpanded ? S.feed.length : 5).map(DEMO.feedRowHtml).join('');
     var open = DEMO.openApprovals();
     var approvedN = S.approvals.filter(function (a) { return a.status === 'approved'; }).length;
     var rejectedN = S.approvals.filter(function (a) { return a.status === 'rejected'; }).length;
     var approvalsHtml;
     if (open.length) {
+      // Titel+Chip+Buttons auf der Fläche — die Beschreibung (a.desc) steckt
+      // schon als ausführlicherer Fließtext (a.detail) im Freigabe-Drawer.
+      // Ganze Zeile ist Klickfläche (row-link), nicht nur der Ansehen-Button.
       approvalsHtml = open.map(function (a) {
         var by = DEMO.agent(a.by);
-        return '<div class="approval"><div class="approval-title">' + a.title + ' <span class="cat-chip">' + a.chip + '</span></div>' +
-          '<div class="approval-desc">' + a.desc + '</div>' +
-          '<div class="approval-foot"><span class="approval-by"><span class="avatar" style="background:' + by.color + '">' + by.initials + '</span>' + by.name + ' · ' + a.ago + '</span>' +
+        return '<div class="approval row-link" data-act="openApproval" data-arg="' + a.id + '">' +
+          '<div class="approval-title">' + a.title + ' <span class="cat-chip">' + a.chip + '</span></div>' +
+          '<div class="approval-foot" style="margin-top:8px"><span class="approval-by"><span class="avatar" style="background:' + by.color + '">' + by.initials + '</span>' + by.name + ' · ' + a.ago + '</span>' +
           '<button class="btn ghost sm" data-act="openApproval" data-arg="' + a.id + '">Ansehen</button>' +
           '<button class="btn primary sm" data-act="approve" data-arg="' + a.id + '">Freigeben</button></div></div>';
       }).join('');

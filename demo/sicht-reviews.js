@@ -40,6 +40,9 @@
 
   var SEARCH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
   var DIST_COLORS = { 5: '#22A05A', 4: '#5E9E6E', 3: '#F9AB00', 2: '#E08A3C', 1: '#D64545' };
+  // Progressive Disclosure: Bewertungstext auf der Fläche 2-zeilig geklemmt,
+  // der volle Text bleibt im openReview-Drawer (.excerpt) erhalten.
+  var CLAMP2 = 'display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden';
 
   /* --- Zeit-Strings der Demo vergleichbar machen (wie in view-support.js) ----- */
   function whenTs(w) {
@@ -152,8 +155,10 @@
 
   function reviewRow(r) {
     var flag = r.status === 'open' ? '<span class="feed-flag warn">wartet auf dich</span>' : '';
+    // Antwort ist auf der Fläche eingeklappt: nur die "Antwort von …"-Zeile.
+    // Der volle Antworttext steht bereits im openReview-Drawer (Block „Antwort").
     var replyHtml = r.reply
-      ? '<div class="rv-reply"><div class="rv-reply-k">Antwort von Nordwind Studio · ' + F.esc(r.reply.at) + '</div>' + F.rich(r.reply.text) + '</div>'
+      ? '<div class="rv-reply"><div class="rv-reply-k">Antwort von Nordwind Studio · ' + F.esc(r.reply.at) + '</div></div>'
       : '';
     var footHtml = r.status === 'open'
       ? '<div style="margin-top:8px;display:flex;gap:8px">' +
@@ -162,11 +167,14 @@
             : '<button class="btn primary sm" data-act="openReview" data-arg="' + r.id + '">Entwurf ansehen &amp; senden</button>') +
         '</div>'
       : '';
-    return '<div class="rv-row' + (r.status === 'open' ? ' open' : '') + '" data-act="openReview" data-arg="' + r.id + '">' +
+    // Ganze Zeile ist Klickfläche — "row-link" ist dasselbe Hover-/Cursor-Muster,
+    // das die übrigen Tabellenzeilen der Demo schon benutzen (siehe app.css).
+    // Fließtext ist 2-zeilig geklemmt; voller Text steht im openReview-Drawer.
+    return '<div class="rv-row row-link' + (r.status === 'open' ? ' open' : '') + '" data-act="openReview" data-arg="' + r.id + '">' +
       '<div class="rv-head">' + stars(r.stars) + '<span class="rv-title">' + F.esc(r.title) + '</span>' + flag +
         '<span class="rv-meta">' + F.esc(r.author) + ' · ' + F.esc(r.when) + '</span>' +
       '</div>' +
-      '<div class="rv-text">' + F.esc(r.text) + '</div>' +
+      '<div class="rv-text" style="' + CLAMP2 + '">' + F.esc(r.text) + '</div>' +
       '<div class="rv-prod">' +
         '<span data-act="openDesign" data-arg="' + r.design + '" style="display:inline-flex;align-items:center;gap:6px">' +
           designSquare(r.design, 18) + '<span>' + F.esc(r.product) + '</span>' +

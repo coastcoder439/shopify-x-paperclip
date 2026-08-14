@@ -64,10 +64,20 @@
     return '<span class="sort-ar">' + (s.dir === 'asc' ? '▲' : '▼') + '</span>';
   }
 
+  // Kürzt den Betreff hart auf eine Zeile — die Tabelle bleibt einzeilig, der
+  // volle Text steht im title-Tooltip und vollständig im Drawer (openTicket).
+  function truncate(s, n) {
+    s = String(s || '');
+    return s.length > n ? s.slice(0, n).replace(/\s+$/, '') + '…' : s;
+  }
+
   /* --- Block 1: Kopfzeile ---------------------------------------------------- */
+  // Jede Notice bleibt auf einer Zeile — den Rest der Erklärung trägt das Ziel
+  // des Buttons (Emmas Profil bzw. der jeweilige Fall im Drawer), nicht mehr
+  // Fließtext auf der Fläche. Nichts geht verloren, es wandert nur dorthin.
   function blockNotices(S, ts) {
     var html = notice('info',
-      '<b>Emma</b> beantwortet Standardfälle selbst und eskaliert alles, was Geld kostet oder unklar ist — sie läuft auf einem lokalen Modell und kostet nichts.',
+      '<b>Emma</b> beantwortet Standardfälle selbst und eskaliert alles, was Geld kostet oder unklar ist.',
       '<button class="btn ghost sm" data-act="openAgent" data-arg="emma">Emma ansehen</button>');
     if (ts.open > 0) {
       html += notice('warn',
@@ -80,28 +90,30 @@
     var rvFaelle = S.tickets.filter(function (t) { return t.channel === 'Bewertung'; }).length;
     if (rvFaelle > 0) {
       html += notice('info',
-        'Kritische Bewertungen legt Emma automatisch als Fall an — Kanal <b>„Bewertung“</b>, ' +
-        'unten in der Liste. Die Antwort erscheint öffentlich unter der Bewertung.',
+        'Kritische Bewertungen legt Emma automatisch als Fall an — Kanal <b>„Bewertung“</b>.',
         '<button class="btn ghost sm" data-act="sicht.go" data-arg="reviews">Zur Auswertung</button>');
     }
     return html;
   }
 
-  /* --- Block 2: KPI-Kacheln --------------------------------------------------- */
+  /* --- Block 2: KPI-Kacheln ----------------------------------------------------
+     Vereinheitlicht: alle vier Kacheln sind gleich aufgebaute Klickflächen
+     (ganze Karte, nicht nur ein Symbol) — die beiden Mengen filtern die Tabelle
+     unten, die beiden Kennzahlen führen zu der Stelle, die sie erklärt. */
   function blockKpis(S, ts) {
     var src = '<span class="kpi-src"><svg viewBox="0 0 24 24" fill="none" stroke="#8B8B8B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8.5 8.5 0 0 1-12.4 7.5L3 21l1.6-5.4A8.5 8.5 0 1 1 21 12Z"/></svg></span>';
-    function card(link, arg, label, value, vs) {
-      return '<div class="card kpi' + (link ? ' link' : '') + '"' + (link ? ' data-act="su.filter" data-arg="' + arg + '"' : '') + '>' +
+    function card(act, arg, label, value, vs) {
+      return '<div class="card kpi link" data-act="' + act + '" data-arg="' + arg + '">' +
         '<div class="kpi-label">' + label + src + '</div>' +
         '<div class="kpi-value">' + value + '</div>' +
         '<div class="kpi-trend"><span class="vs">' + vs + '</span></div>' +
       '</div>';
     }
     return '<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">' +
-      card(true, 'solved', 'Automatisch gelöst', F.pct0(ts.rate), ts.solved + ' von ' + ts.total + ' Anfragen') +
-      card(true, 'all', 'Anfragen', F.num(ts.total), 'letzte 7 Tage') +
-      card(false, '', 'Ø Erstantwort', D.fixed.firstReply, 'von Emma') +
-      card(false, '', 'Zufriedenheit', D.fixed.satisfaction, 'aus ' + ts.solved + ' Bewertungen') +
+      card('su.filter', 'solved', 'Automatisch gelöst', F.pct0(ts.rate), ts.solved + ' von ' + ts.total + ' Anfragen') +
+      card('su.filter', 'all', 'Anfragen', F.num(ts.total), 'letzte 7 Tage') +
+      card('openAgent', 'emma', 'Ø Erstantwort', D.fixed.firstReply, 'von Emma') +
+      card('sicht.go', 'reviews', 'Zufriedenheit', D.fixed.satisfaction, 'aus ' + ts.solved + ' Bewertungen') +
     '</div>';
   }
 
@@ -126,15 +138,23 @@
     '</div>';
   }
 
+  // Zeigt je Liste nur die ersten LIST_PEEK Punkte — der volle Rest steht
+  // ungekürzt im openAgent-Drawer (agentDrawer in core.js liest dieselben
+  // emma.skills / emma.permissions). Grenze gilt unabhängig von der Datenmenge.
+  var LIST_PEEK = 3;
+  function limitedTicks(list, cls) {
+    return '<ul class="tick-list' + (cls ? ' ' + cls : '') + '">' +
+      list.slice(0, LIST_PEEK).map(function (s) { return '<li>' + F.esc(s) + '</li>'; }).join('') +
+    '</ul>';
+  }
   function blockEmmaLimits() {
     var emma = DEMO.agent('emma');
-    return '<div class="card">' +
-      '<div class="card-head"><span class="card-title">Was Emma darf — und was nicht</span></div>' +
+    var openIco = '<span class="agent-open"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>';
+    return '<div class="card" data-act="openAgent" data-arg="emma">' +
+      '<div class="card-head"><span class="card-title">Was Emma darf — und was nicht</span>' + openIco + '</div>' +
       '<div class="card-pad">' +
-        '<h4 class="drawer-h">Erledigt sie allein</h4><ul class="tick-list">' +
-          emma.skills.map(function (s) { return '<li>' + F.esc(s) + '</li>'; }).join('') + '</ul>' +
-        '<h4 class="drawer-h">Fragt immer nach</h4><ul class="tick-list lock">' +
-          emma.permissions.map(function (s) { return '<li>' + F.esc(s) + '</li>'; }).join('') + '</ul>' +
+        '<h4 class="drawer-h">Erledigt sie allein</h4>' + limitedTicks(emma.skills) +
+        '<h4 class="drawer-h">Fragt immer nach</h4>' + limitedTicks(emma.permissions, 'lock') +
         '<p class="hint">Deshalb liegen genau die Fälle bei dir, in denen es um Geld geht.</p>' +
       '</div>' +
     '</div>';
@@ -206,7 +226,7 @@
           ? '<span class="pill scheduled"><span class="p-dot"></span>bei dir</span>'
           : '<span class="pill idle"><span class="p-dot"></span>gelöst</span>';
         return '<tr class="row-link" data-act="openTicket" data-arg="' + t.id + '">' +
-          '<td><span class="mono">' + F.esc(t.no) + '</span><div class="hint">' + F.esc(t.subject) + '</div></td>' +
+          '<td><span class="mono">' + F.esc(t.no) + '</span> <span class="hint" title="' + F.esc(t.subject) + '">' + F.esc(truncate(t.subject, 40)) + '</span></td>' +
           '<td>' + F.esc(t.customer) + '</td>' +
           '<td><span class="tag">' + F.esc(t.topic) + '</span></td>' +
           '<td><span class="hint">' + F.esc(t.channel) + '</span></td>' +

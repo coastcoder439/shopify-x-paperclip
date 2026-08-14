@@ -75,18 +75,23 @@
     '</div>';
   }
 
-  /* --- USt-VA ------------------------------------------------------------- */
+  /* --- USt-VA ---------------------------------------------------------------
+     Ganze Karte ist die Klickfläche (Vorgabe 3) — führt im Entwurf zur Freigabe,
+     danach zum Beleg-Task. Card-Foot spiegelt den der GuV-Karte, damit beide
+     Karten der Reihe gleich hoch wirken (Raster stretcht ohnehin schon exakt
+     gleich; der Foot verhindert nur die tote Lücke, wenn der Inhalt kürzer ist). */
   function ustva(S) {
     var u = DEMO.ustvaNumbers(5);                 // immer der abgeschlossene Vormonat
     var zeile = function (k, v, cls) { return '<div class="guv-row' + (cls ? ' ' + cls : '') + '"><span>' + k + '</span><span class="amt">' + v + '</span></div>'; };
-    var unten = S.ustva === 'draft'
+    var draft = S.ustva === 'draft';
+    var act = draft ? ' data-act="openApproval" data-arg="a2"' : ' data-act="openTask" data-arg="NOR-49"';
+    var notice = draft
       ? '<div class="notice warn" style="margin:12px 0 0">' + ICON_INFO +
-          '<span>Entwurf steht — gegen die Payouts geprüft, keine Abweichung. Frist: <b>10.08.2026</b>.</span></div>' +
-        '<button class="btn primary sm" style="margin-top:10px" data-act="openApproval" data-arg="a2">Prüfen &amp; freigeben</button>'
+          '<span>Entwurf steht — gegen die Payouts geprüft, keine Abweichung. Frist: <b>10.08.2026</b>.</span></div>'
       : '<div class="notice ok" style="margin:12px 0 0">' + ICON_INFO +
           '<span>Übermittelt. Das Protokoll liegt als Artifact am Task ' +
           '<span class="task-ref" data-act="openTask" data-arg="NOR-49">NOR-49</span>.</span></div>';
-    return '<div class="card">' +
+    return '<div class="card"' + act + '>' +
       '<div class="card-head"><span class="card-title">Umsatzsteuer-Voranmeldung</span>' +
         '<span class="card-title-note">Juni 2026</span></div>' +
       '<div class="card-pad">' +
@@ -95,9 +100,9 @@
           zeile('Umsatzsteuer 19 %', F.eur2(u.vat)) +
           zeile('Vorsteuer', F.eurSigned(-u.inputVat)) +
           zeile('Zahllast', F.eur2(u.pay), 'total') +
-        '</div>' + unten +
-        '<p class="hint">Fällig ist immer der abgeschlossene Vormonat — deshalb Juni, egal welchen Monat du oben ansiehst.</p>' +
+        '</div>' + notice +
       '</div>' +
+      '<div class="card-foot"><span>Fällig ist immer der abgeschlossene Vormonat — deshalb Juni, egal welchen Monat du oben ansiehst.</span></div>' +
     '</div>';
   }
 
@@ -118,11 +123,11 @@
       var konto = offen
         ? '<span class="feed-flag warn">Zuordnung offen</span>'
         : '<span class="mono" style="font-size:11px">' + F.esc(r.account) + '</span>';
-      var text = r.text.length > 46 ? r.text.slice(0, 44) + '…' : r.text;
+      var text = r.text.length > 38 ? r.text.slice(0, 36) + '…' : r.text;
       return '<tr class="row-link" data-act="openReceipt" data-arg="' + r.id + '">' +
-        '<td><span class="mono">' + r.id + '</span><br><span class="hint" style="font-size:11px">' + F.esc(text) + '</span></td>' +
+        '<td style="white-space:nowrap"><span class="mono">' + r.id + '</span><span class="hint" style="font-size:11px"> · ' + F.esc(text) + '</span></td>' +
         '<td><span class="mono">' + F.dateShort(r.date) + '</span></td>' +
-        '<td><span style="font-weight:600">' + F.esc(r.vendor) + '</span><br><span class="hint" style="font-size:11px">' + F.esc(r.kind) + '</span></td>' +
+        '<td style="white-space:nowrap"><span style="font-weight:600">' + F.esc(r.vendor) + '</span><span class="hint" style="font-size:11px"> · ' + F.esc(r.kind) + '</span></td>' +
         '<td>' + konto + '</td>' +
         '<td class="rev">' + F.eurSigned(r.amount) + '</td>' +
       '</tr>';
@@ -159,14 +164,26 @@
   // Kleiner Schutz: fehlt der Monat, ist die Liste leer statt undefined
   function receitsSafe(S) { return receipts(S); }
 
-  /* --- Agenten-Kosten ------------------------------------------------------ */
-  function kosten(S) {
+  /* --- Agenten-Kosten ---------------------------------------------------------
+     Rechte Karte zeigt nur Kernzahl + 3 kv-Zeilen (Vorgabe 2); der Rest (Zeitwert,
+     Balken, beide Notices) wandert unverändert in den bu.kostenInfo-Drawer, den
+     ein einzeiliger .peek öffnet. kostenZahlen() ist der gemeinsame Rechenkern,
+     damit Karte und Drawer nie auseinanderlaufen (DRY). */
+  function kostenZahlen(S) {
     var m = DEMO.monthSums(S.month);
     var summeKosten = D.agents.reduce(function (s, a) { return s + a.costMonth; }, 0);
     var summeStunden = D.agents.reduce(function (s, a) { return s + a.hoursSaved; }, 0);
-    var wert = summeStunden * 45;
-    var anteil = (m.agentCost / (m.agentCost + m.ads)) * 100;
-    var vomRohertrag = (m.agentCost / m.gross) * 100;
+    return {
+      m: m, summeKosten: summeKosten, summeStunden: summeStunden,
+      wert: summeStunden * 45,
+      anteil: (m.agentCost / (m.agentCost + m.ads)) * 100,
+      vomRohertrag: (m.agentCost / m.gross) * 100
+    };
+  }
+  function kvRow(k, v) { return '<div class="kv-row"><span class="kv-k">' + k + '</span><span class="kv-v">' + v + '</span></div>'; }
+
+  function kosten(S) {
+    var z = kostenZahlen(S), m = z.m;
 
     var rows = D.agents.map(function (a) {
       return '<tr class="row-link" data-act="openAgent" data-arg="' + a.id + '">' +
@@ -187,24 +204,23 @@
             '<span class="card-title-note">Klick öffnet das Profil</span></div>' +
           '<table class="products"><tr><th>Agent</th><th>Modell</th><th>Zugang</th><th>Kosten</th><th>Zeit gespart</th></tr>' +
           rows + '</table>' +
-          '<div class="card-foot"><span><b>' + D.agents.length + ' Agenten</b> · Summe <b>' + F.eur2(summeKosten) + '</b></span>' +
-            '<span><b>' + summeStunden + ' Stunden</b> nicht bei dir gelandet</span></div>' +
+          '<div class="card-foot"><span><b>' + D.agents.length + ' Agenten</b> · Summe <b>' + F.eur2(z.summeKosten) + '</b></span>' +
+            '<span><b>' + z.summeStunden + ' Stunden</b> nicht bei dir gelandet</span></div>' +
         '</div>' +
-        '<div class="card card-pad">' +
-          '<div class="stat-big">' + F.eur2(m.agentCost) + '</div>' +
-          '<div class="stat-sub">Agenten-Kosten im ' + F.monthName(S.month) + '</div>' +
-          '<div style="margin-top:14px">' +
-            '<div class="kv-row"><span class="kv-k">Google Ads im selben Monat</span><span class="kv-v">' + F.eur2(m.ads) + '</span></div>' +
-            '<div class="kv-row"><span class="kv-k">Software &amp; Abos</span><span class="kv-v">' + F.eur2(m.software) + '</span></div>' +
-            '<div class="kv-row"><span class="kv-k">Gesparte Zeit</span><span class="kv-v">' + summeStunden + ' Std.</span></div>' +
-            '<div class="kv-row"><span class="kv-k">Bei 45 €/Std. entspricht das</span><span class="kv-v">' + F.eur2(wert) + '</span></div>' +
+        '<div class="card">' +
+          '<div class="card-pad">' +
+            '<div class="stat-big">' + F.eur2(m.agentCost) + '</div>' +
+            '<div class="stat-sub">Agenten-Kosten im ' + F.monthName(S.month) + '</div>' +
+            '<div style="margin-top:14px">' +
+              kvRow('Google Ads im selben Monat', F.eur2(m.ads)) +
+              kvRow('Software &amp; Abos', F.eur2(m.software)) +
+              kvRow('Gesparte Zeit', z.summeStunden + ' Std.') +
+            '</div>' +
           '</div>' +
-          '<div style="margin-top:14px"><div class="prog"><i style="width:' + anteil.toFixed(1) + '%"></i></div>' +
-            '<p class="hint">Von jedem Euro, den du diesen Monat für Werbung und Agenten ausgibst, gehen <b>' +
-              Math.round(anteil) + ' Cent</b> an die Agenten.</p></div>' +
-          '<div class="notice ok" style="margin-top:12px">' + ICON_INFO +
-            '<span>Die Agenten kosten <b>' + vomRohertrag.toFixed(1).replace('.', ',') + ' %</b> deines Rohertrags.</span></div>' +
-          '<p class="hint">Emma läuft auf einem lokalen Modell auf deinem Server — sie taucht mit 0 € auf, weil sie außer Strom nichts kostet.</p>' +
+          '<div class="peek" data-act="bu.kostenInfo" style="margin-top:auto;border-top:1px solid var(--border-soft)">' +
+            '<span class="peek-label">Zeitwert &amp; Anteil am Rohertrag</span>' +
+            '<span class="peek-value">' + F.pct1(z.vomRohertrag) + '</span>' +
+          '</div>' +
         '</div>' +
       '</div>';
   }
@@ -248,6 +264,29 @@
   A['bu.more'] = function () {
     DEMO.state.filters.buLimit = (DEMO.state.filters.buLimit || 40) + 40;
     DEMO.render();
+  };
+
+  // Öffnet aus dem .peek der Kosten-Karte: der Rest der alten Fläche
+  // (Zeitwert-Zeile, Balken, beide Notices) — unverändert, nur umgruppiert.
+  A['bu.kostenInfo'] = function () {
+    var S = DEMO.state, z = kostenZahlen(S), m = z.m;
+    U.drawer({
+      title: 'Agenten-Kosten im Detail', sub: F.monthName(S.month) + ' 2026',
+      body: '<div class="drawer-grid">' +
+          '<div class="mini"><div class="mini-k">Agenten-Kosten</div><div class="mini-v">' + F.eur2(m.agentCost) + '</div></div>' +
+          '<div class="mini"><div class="mini-k">Google Ads</div><div class="mini-v">' + F.eur2(m.ads) + '</div></div>' +
+          '<div class="mini"><div class="mini-k">Software &amp; Abos</div><div class="mini-v">' + F.eur2(m.software) + '</div></div>' +
+          '<div class="mini"><div class="mini-k">Gesparte Zeit</div><div class="mini-v">' + z.summeStunden + ' Std.</div></div>' +
+        '</div>' +
+        kvRow('Bei 45 €/Std. entspricht das', F.eur2(z.wert)) +
+        '<div style="margin-top:14px"><div class="prog"><i style="width:' + z.anteil.toFixed(1) + '%"></i></div>' +
+          '<p class="hint">Von jedem Euro, den du diesen Monat für Werbung und Agenten ausgibst, gehen <b>' +
+            Math.round(z.anteil) + ' Cent</b> an die Agenten.</p></div>' +
+        '<div class="notice ok" style="margin-top:12px">' + ICON_INFO +
+          '<span>Die Agenten kosten <b>' + F.pct1(z.vomRohertrag) + '</b> deines Rohertrags.</span></div>' +
+        '<p class="hint">Emma läuft auf einem lokalen Modell auf deinem Server — sie taucht mit 0 € auf, weil sie außer Strom nichts kostet.</p>',
+      foot: '<button class="btn ghost" data-act="closeDrawer">Schließen</button>'
+    });
   };
 
   A['bu.export'] = function (art) {

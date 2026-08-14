@@ -10,13 +10,64 @@
 .team-grid { grid-template-columns: repeat(7, 1fr); }
 .agent-role { overflow-wrap: anywhere; }
 
+/* --- Layout-System: gleiche Kartenhöhen + Overflow-Guards ------------------
+   Fundament für ALLE Kartenraster (KPI, Team, Trio, Charts, Duo, Post,
+   Pipeline) — jeder Reiter-Builder baut direkt darauf auf. Ziel: Karten
+   einer Reihe sind immer gleich hoch, nichts läuft über den Kartenrand. */
+.kpi-grid, .team-grid, .trio-grid, .charts-grid,
+.duo-grid, .post-grid, .pipeline-grid { align-items: stretch; }
+.kpi-grid > *, .team-grid > *, .trio-grid > *, .charts-grid > *,
+.duo-grid > *, .post-grid > *, .pipeline-grid > * { min-width: 0; }
+
+.card { display: flex; flex-direction: column; }
+.card-foot, .agent-last, .traffic-foot { margin-top: auto; }
+.agent-last { flex: none; }
+.card:has(> table) { overflow-x: auto; }
+
+.kpi-label, .prod-name, .kw-name, .post-title { overflow-wrap: anywhere; }
+.kpi-value { font-size: clamp(17px, 1vw + 14px, 26px); }
+
+/* Disclosure-Baustein: kompakte Kopf-/Listenzeile für Karten, deren Details
+   in den Drawer wandern — Label links, Kernwert rechts, Chevron als
+   Affordance. Reiht sich als Einzelzeile oder gestapelt (nächste .peek
+   bekommt automatisch einen Trenner). */
+.peek { display: flex; align-items: center; gap: 10px; padding: 11px 16px; }
+.peek + .peek { border-top: 1px solid var(--border-soft); }
+.peek-label { font-size: 12.5px; color: var(--muted-fg); font-weight: 500; overflow-wrap: anywhere; }
+.peek-value { margin-left: auto; font-size: 13.5px; font-weight: 600; color: var(--fg-strong); white-space: nowrap; }
+.peek::after {
+  content: ''; flex: none; width: 6px; height: 6px; margin-left: 1px;
+  border-right: 1.6px solid var(--muted-fg-2); border-bottom: 1.6px solid var(--muted-fg-2);
+  transform: rotate(-45deg);
+}
+.peek[data-act]:hover { background: #FCFCFC; }
+.peek[data-act]:hover::after { border-color: var(--muted-fg); }
+
 /* --- Klickbarkeit ---------------------------------------------------------- */
 [data-act] { cursor: pointer; }
 .nav-item, .conn, .tab, .range-select, .kpi.link, .row-link, .feed-avatar, .task-ref[data-act] { cursor: pointer; }
-.kpi.link:hover { background: #FCFCFC; border-color: #E0E0E0; }
-.kpi.link { transition: background .12s, border-color .12s; }
-.card.agent-card[data-act]:hover { border-color: #DCDCDC; background: #FCFCFC; }
-.card.agent-card { transition: background .12s, border-color .12s; }
+/* Klickkarten-Standard: die ganze Karte ist die Klickfläche, nicht nur ein
+   Icon. .card.click ist der Opt-in-Name für neue Karten; [data-act] direkt
+   auf einer .card bekommt denselben Stil automatisch — deckt .kpi.link,
+   .agent-card, Buchhaltung-/Support-Karten usw. einheitlich ab, ohne dass
+   ihre Klassen sich ändern müssen. */
+.card.click, .card[data-act] {
+  cursor: pointer;
+  transition: border-color .12s, background-color .12s, transform .12s;
+}
+.card.click:hover, .card[data-act]:hover {
+  border-color: #DCDCDC;
+  background: #FCFCFC;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .card.click:hover, .card[data-act]:hover { transform: translateY(-1px); }
+}
+.card.click:focus-visible, .card[data-act]:focus-visible {
+  outline: 2px solid var(--fg-strong);
+  outline-offset: 2px;
+}
+.nav-item:focus-visible { outline: 2px solid var(--fg-strong); outline-offset: -2px; }
+
 .nav-item.demo-off { color: #9A9A9A; }
 .nav-item.demo-off .icon { color: #B4B4B4; }
 .icon-btn {

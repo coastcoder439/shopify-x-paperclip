@@ -103,7 +103,7 @@
     var c4trend = '<div class="kpi-trend"><span class="vs">von ' + F.num(n) + ' beobachteten</span></div>';
 
     return '<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">' +
-      kpiCard('Keywords in Top 10', F.num(top10Now), c1trend, null) +
+      kpiCard('Keywords in Top 10', F.num(top10Now), c1trend, ' data-act="seo.filter" data-arg="top10"') +
       kpiCard('Ø Position', de1(avgPos), c2trend, null) +
       kpiCard('Organische Sitzungen', F.num(organicSessions), c3trend, null) +
       kpiCard('Verbesserte Keywords', F.num(improvedCount), c4trend, ' data-act="seo.filter" data-arg="up"') +
@@ -151,22 +151,13 @@
   function keywordRow(k) {
     var delta = deltaOf(k);
     var posCell = '<span class="pill ' + (k.pos <= 10 ? 'working' : 'idle') + '">' + F.num(k.pos) + '</span>';
-    var designCell = '<em class="hint">Kategorie/Blog</em>';
-    if (k.design) {
-      var dz = DEMO.design(k.design);
-      if (dz) {
-        designCell = '<span data-act="openDesign" data-arg="' + dz.id + '" style="display:inline-flex;align-items:center;gap:6px">' +
-          '<span style="width:18px;height:18px;border-radius:5px;flex:none;background:linear-gradient(135deg,' + dz.g1 + ',' + dz.g2 + ')"></span>' +
-          '<span>' + F.esc(dz.name) + '</span></span>';
-      }
-    }
+    // Seite und Design stehen bereits vollständig im Drawer (openKeyword) — auf der
+    // Fläche bleibt die Zeile auf die vier sortierbaren Kernwerte reduziert, garantiert einzeilig.
     return '<tr class="row-link" data-act="openKeyword" data-arg="' + F.esc(k.kw) + '">' +
       '<td class="prod-name">' + F.esc(k.kw) + '</td>' +
       '<td class="mono">' + F.num(k.vol) + '/Mon.</td>' +
       '<td>' + posCell + '</td>' +
       '<td>' + trendArrow(delta) + '</td>' +
-      '<td class="mono" style="font-size:11px">' + F.esc(k.url) + '</td>' +
-      '<td>' + designCell + '</td>' +
     '</tr>';
   }
 
@@ -212,10 +203,10 @@
     }).join('') + '</div>';
 
     var theadHtml = '<thead><tr>' + th('Keyword', 'kw') + th('Suchvolumen', 'vol') + th('Position', 'pos') +
-      th('Veränderung', 'delta') + '<th>Seite</th><th>Design</th></tr></thead>';
+      th('Veränderung', 'delta') + '</tr></thead>';
     var tbodyHtml;
     if (!filtered.length) {
-      tbodyHtml = '<tbody><tr><td colspan="6"><div class="empty sm">Kein Keyword passt<br>' +
+      tbodyHtml = '<tbody><tr><td colspan="4"><div class="empty sm">Kein Keyword passt<br>' +
         '<button class="btn ghost sm" data-act="seo.clear" style="margin-top:8px">Filter zurücksetzen</button></div></td></tr></tbody>';
     } else {
       tbodyHtml = '<tbody>' + filtered.map(keywordRow).join('') + '</tbody>';
@@ -240,21 +231,17 @@
   /* --- Block 5: Mias Arbeit + Content-Plan --------------------------------------*/
   function seoTaskBlock(t, idx) {
     var st = idx > 0 ? ' style="border-top:1px solid var(--border-soft)"' : '';
-    var pill = t.status === 'done'
+    var done = t.status === 'done';
+    var pill = done
       ? '<span class="pill idle"><span class="p-dot"></span>erledigt</span>'
       : '<span class="pill scheduled"><span class="p-dot"></span>Vorschlag</span>';
-    var foot = t.status === 'done'
-      ? '<div class="feed-flag ok">' + F.esc(t.result) + '</div>'
-      : '<div class="feed-flag warn">' + F.esc(t.result) + '</div>' +
-        '<div style="margin-top:8px"><button class="btn primary sm" data-act="seo.run" data-arg="' + t.id + '">Starten (≈' +
-        F.num(t.runMinutes) + ' Min.)</button></div>';
-    return '<div class="card-pad"' + st + '>' +
+    // Titel+Pill, dann genau eine Zeile (Ergebnis/Schätzung) — wann, Begründung und
+    // ggf. „Starten" liegen im Drawer (seo.task); der ganze Block ist die Klickfläche.
+    return '<div class="card-pad row-link" data-act="seo.task" data-arg="' + t.id + '"' + st + '>' +
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
         '<span style="font-weight:600;font-size:13.5px">' + F.esc(t.title) + '</span>' + pill +
       '</div>' +
-      '<div class="hint">' + F.esc(t.when) + '</div>' +
-      '<div class="lead" style="font-size:12.5px;margin-top:4px">' + F.esc(t.detail) + '</div>' +
-      foot +
+      '<div class="feed-flag ' + (done ? 'ok' : 'warn') + '" style="margin-top:8px">' + F.esc(t.result) + '</div>' +
     '</div>';
   }
 
@@ -362,10 +349,28 @@
     DEMO.render();
   };
 
+  /* --- Aktion: Mia-Aufgabe im Detail (Drawer, bindet den vorhandenen Lauf ein) ------*/
+  A['seo.task'] = function (id) {
+    var t = ST.seoTasks.filter(function (x) { return x.id === id; })[0];
+    if (!t) return;
+    var done = t.status === 'done';
+    var body = '<p class="lead">' + F.esc(t.detail) + '</p>' +
+      '<div class="notice ' + (done ? 'ok' : 'warn') + '">' + INFO_ICON + '<span>' + F.esc(t.result) + '</span></div>';
+    var foot = '<button class="btn ghost" data-act="closeDrawer">Schließen</button>' +
+      (done ? '' : '<button class="btn primary" data-act="seo.run" data-arg="' + t.id + '">Starten (≈' + F.num(t.runMinutes) + ' Min.)</button>');
+    U.drawer({
+      title: F.esc(t.title),
+      sub: F.esc(t.when),
+      body: body,
+      foot: foot
+    });
+  };
+
   /* --- Mias Aufgaben starten --------------------------------------------------------*/
   A['seo.run'] = function (id) {
     var t = ST.seoTasks.filter(function (x) { return x.id === id; })[0];
     if (!t || t.status !== 'open') return;
+    U.closeDrawer();
     var def = RUN_DEFS[id] || { steps: [{ text: 'Arbeitet an „' + t.title + '“', ms: 900 }], result: 'Erledigt.' };
     U.run({
       agent: 'mia',
@@ -378,7 +383,7 @@
         t.result = def.result;
         DEMO.pushFeed('mia', '<b>Mia</b>: ' + def.result, { type: 'ok', text: 'Erledigt' }, 'NOR-55');
         U.toast('Aufgabe erledigt — Mia bleibt dran');
-        if (ST.tab === 'seo') DEMO.render();
+        if (ST.tab === 'sichtbarkeit') DEMO.render();
       }
     });
   };
@@ -435,7 +440,7 @@
         });
         DEMO.pushFeed('mia', '<b>Mia</b>: Der Artikel „' + c.title + '“ ist fertig — liegt jetzt bei dir zur Freigabe.', { type: 'ok', text: 'Fertig' }, 'NOR-55');
         U.toast('Artikel fertig — liegt zur Freigabe bereit');
-        if (ST.tab === 'seo') DEMO.render();
+        if (ST.tab === 'sichtbarkeit') DEMO.render();
       }
     });
   };
