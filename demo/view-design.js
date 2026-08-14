@@ -117,7 +117,7 @@
         '<div class="card-pad">' +
           '<div style="font-weight:600;font-size:13.5px">' + F.esc(d.name) + '</div>' +
           '<div class="hint">' + F.esc(d.products.join(' · ')) + '</div>' +
-          '<div class="mono" style="font-size:11px;margin-top:4px">' + F.esc(d.price) + '</div>' +
+          '<div class="mono" style="font-size:11px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + F.esc(d.price) + '">' + F.esc(d.price) + '</div>' +
         '</div>' +
         '<div class="card-foot"><button class="btn ghost sm" data-act="openDraft" data-arg="' + d.id + '">Ansehen</button></div>' +
       '</div>';

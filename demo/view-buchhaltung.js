@@ -10,8 +10,16 @@
   var KONTEN = ['4930 Bürobedarf', '3400 Wareneingang', '4980 Betriebsbedarf', '4600 Werbekosten'];
   var ICON_SEARCH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
   var ICON_INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>';
+  // Kappt lange Modell-/Rollen-/Zugangs-Werte einzeilig statt sie mitten im
+  // Token umbrechen zu lassen (z. B. "claude-haiku-4-5", "commerce/design-
+  // research") — voller Wert bleibt über title-Tooltip erreichbar.
+  var CLIP = 'display:inline-block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle';
 
   function receipts(S) { return D.receipts[S.month] || []; }
+
+  // Eine GuV-Zeile (Label + Betrag, optional als Summenzeile). Gemeinsam für
+  // die GuV-Karte und deren bu.guv-Drawer, damit beide nie auseinanderlaufen.
+  function zeile(k, v, cls) { return '<div class="guv-row' + (cls ? ' ' + cls : '') + '"><span>' + k + '</span><span class="amt">' + v + '</span></div>'; }
 
   function gefiltert(S) {
     var q = (S.forms['bu.q'] || '').toLowerCase().trim();
@@ -44,65 +52,55 @@
     return '<th class="sortable" data-act="sort" data-arg="' + tabelle + '|' + key + '">' + label + ar + '</th>';
   }
 
-  /* --- GuV ---------------------------------------------------------------- */
+  /* --- GuV -----------------------------------------------------------------
+     Fläche zeigt nur die eine führende Kennzahl (Betriebsergebnis) plus zwei
+     Subwerte (Rohertrag inkl. Marge, Einnahmen) — die volle Positionsliste
+     samt Export-Buttons wohnt im bu.guv-Drawer. Ganze Karte ist Klickfläche
+     dorthin, der Foot ist nur die dezente, zusätzliche Affordance. */
   function guv(S) {
     var m = DEMO.monthSums(S.month);
-    var zeile = function (k, v, cls) { return '<div class="guv-row' + (cls ? ' ' + cls : '') + '"><span>' + k + '</span><span class="amt">' + v + '</span></div>'; };
-    return '<div class="card">' +
+    return '<div class="card" data-act="bu.guv">' +
       '<div class="card-head"><span class="card-title">Gewinn- und Verlustrechnung</span>' +
         '<span class="card-title-note">' + F.monthName(S.month) + ' 2026</span></div>' +
       '<div class="card-pad">' +
-        '<div class="guv">' +
-          zeile('Einnahmen (Shopify)', F.eur2(m.revenue)) +
-          zeile('Druckkosten (Printful)', F.eurSigned(-m.print)) +
-          zeile('Zahlungsgebühren (Shopify, PayPal)', F.eurSigned(-m.fees)) +
-          zeile('Rohertrag', F.eur2(m.gross) + ' · ' + F.pct0(m.margin), 'total') +
-        '</div>' +
-        '<div class="guv" style="margin-top:10px">' +
-          zeile('Werbung (Google Ads)', F.eurSigned(-m.ads)) +
-          zeile('Software &amp; Abos', F.eurSigned(-m.software)) +
-          zeile('Agenten <span class="feed-flag ok" style="margin-left:4px">' + D.agents.length + ' Agenten</span>', F.eurSigned(-m.agentCost)) +
-          zeile('Betriebsergebnis', F.eur2(m.operating), 'total') +
+        '<div class="stat-big">' + F.eur2(m.operating) + '</div>' +
+        '<div class="stat-sub">Betriebsergebnis · ' + F.monthName(S.month) + '</div>' +
+        '<div style="margin-top:14px">' +
+          kvRow('Rohertrag', F.eur2(m.gross) + ' · ' + F.pct0(m.margin)) +
+          kvRow('Einnahmen (Shopify)', F.eur2(m.revenue)) +
         '</div>' +
       '</div>' +
-      '<div class="card-foot">' +
-        '<span>Aus <b>' + receipts(S).length + '</b> Belegen gerechnet — jeder einzeln zugeordnet</span>' +
-        '<span style="display:flex;gap:6px">' +
-          '<button class="btn ghost sm" data-act="bu.export" data-arg="datev">DATEV-Export</button>' +
-          '<button class="btn ghost sm" data-act="bu.export" data-arg="csv">CSV</button>' +
-        '</span>' +
-      '</div>' +
+      '<div class="card-foot"><span>Aufstellung ansehen →</span></div>' +
     '</div>';
   }
 
   /* --- USt-VA ---------------------------------------------------------------
      Ganze Karte ist die Klickfläche (Vorgabe 3) — führt im Entwurf zur Freigabe,
-     danach zum Beleg-Task. Card-Foot spiegelt den der GuV-Karte, damit beide
-     Karten der Reihe gleich hoch wirken (Raster stretcht ohnehin schon exakt
-     gleich; der Foot verhindert nur die tote Lücke, wenn der Inhalt kürzer ist). */
+     danach zum Beleg-Task. Fläche zeigt nur die Zahllast als führende Kennzahl
+     plus eine einzeilige Status-Notice; Netto/USt/Vorsteuer stehen bereits im
+     a2-Freigabe-Drawer (approvalDrawer in core.js) — hier nur verwiesen,
+     nicht verdoppelt. */
   function ustva(S) {
     var u = DEMO.ustvaNumbers(5);                 // immer der abgeschlossene Vormonat
-    var zeile = function (k, v, cls) { return '<div class="guv-row' + (cls ? ' ' + cls : '') + '"><span>' + k + '</span><span class="amt">' + v + '</span></div>'; };
     var draft = S.ustva === 'draft';
     var act = draft ? ' data-act="openApproval" data-arg="a2"' : ' data-act="openTask" data-arg="NOR-49"';
     var notice = draft
       ? '<div class="notice warn" style="margin:12px 0 0">' + ICON_INFO +
-          '<span>Entwurf steht — gegen die Payouts geprüft, keine Abweichung. Frist: <b>10.08.2026</b>.</span></div>'
+          '<span>Entwurf bereit — Frist <b>10.08.2026</b>.</span></div>'
       : '<div class="notice ok" style="margin:12px 0 0">' + ICON_INFO +
-          '<span>Übermittelt. Das Protokoll liegt als Artifact am Task ' +
+          '<span>Übermittelt · Protokoll bei ' +
           '<span class="task-ref" data-act="openTask" data-arg="NOR-49">NOR-49</span>.</span></div>';
     return '<div class="card"' + act + '>' +
       '<div class="card-head"><span class="card-title">Umsatzsteuer-Voranmeldung</span>' +
         '<span class="card-title-note">Juni 2026</span></div>' +
       '<div class="card-pad">' +
-        '<div class="guv">' +
-          zeile('Umsätze netto', F.eur2(u.net)) +
-          zeile('Umsatzsteuer 19 %', F.eur2(u.vat)) +
-          zeile('Vorsteuer', F.eurSigned(-u.inputVat)) +
-          zeile('Zahllast', F.eur2(u.pay), 'total') +
-        '</div>' + notice +
+        '<div class="stat-big">' + F.eur2(u.pay) + '</div>' +
+        '<div class="stat-sub">Zahllast · Juni 2026</div>' +
+        notice +
       '</div>' +
-      '<div class="card-foot"><span>Fällig ist immer der abgeschlossene Vormonat — deshalb Juni, egal welchen Monat du oben ansiehst.</span></div>' +
+      '<div class="card-foot"><span>Fällig ist immer der abgeschlossene Vormonat — deshalb Juni, egal welchen Monat du oben ansiehst.</span>' +
+        (draft ? '<button class="btn primary sm" data-act="approve" data-arg="a2">Freigeben</button>' : '') +
+      '</div>' +
     '</div>';
   }
 
@@ -188,10 +186,11 @@
     var rows = D.agents.map(function (a) {
       return '<tr class="row-link" data-act="openAgent" data-arg="' + a.id + '">' +
         '<td><span class="prod-cell"><span class="agent-avatar" style="background:' + a.color + '">' + a.initials + '</span>' +
-          '<span><span class="prod-name">' + a.name + '</span><br><span class="prod-sku">' + a.role + '</span></span></span></td>' +
-        '<td><span class="mono" style="font-size:11px">' + a.model + '</span></td>' +
-        '<td><span class="hint">' + a.access + '</span></td>' +
-        '<td class="rev">' + (a.costMonth ? F.eur2(a.costMonth) : 'kostenfrei ' + '<span class="feed-flag ok">lokal</span>') + '</td>' +
+          '<span><span class="prod-name">' + a.name + '</span><br>' +
+          '<span class="prod-sku" style="' + CLIP + ';max-width:150px" title="' + F.esc(a.role) + '">' + F.esc(a.role) + '</span></span></span></td>' +
+        '<td><span class="mono" style="' + CLIP + ';max-width:120px;font-size:11px" title="' + F.esc(a.model) + '">' + F.esc(a.model) + '</span></td>' +
+        '<td><span class="hint" style="' + CLIP + ';max-width:150px" title="' + F.esc(a.access) + '">' + F.esc(a.access) + '</span></td>' +
+        '<td class="rev" style="white-space:nowrap">' + (a.costMonth ? F.eur2(a.costMonth) : 'kostenfrei <span class="feed-flag ok">lokal</span>') + '</td>' +
         '<td><span class="mono">' + a.hoursSaved + ' Std.</span></td>' +
       '</tr>';
     }).join('');
@@ -264,6 +263,31 @@
   A['bu.more'] = function () {
     DEMO.state.filters.buLimit = (DEMO.state.filters.buLimit || 40) + 40;
     DEMO.render();
+  };
+
+  // Öffnet aus dem Foot/Klick der GuV-Karte: die volle Positionsliste, die
+  // vorher direkt auf der Fläche stand — inklusive der Export-Buttons.
+  A['bu.guv'] = function () {
+    var S = DEMO.state, m = DEMO.monthSums(S.month);
+    U.drawer({
+      title: 'Gewinn- und Verlustrechnung', sub: F.monthName(S.month) + ' 2026',
+      body: '<div class="guv">' +
+          zeile('Einnahmen (Shopify)', F.eur2(m.revenue)) +
+          zeile('Druckkosten (Printful)', F.eurSigned(-m.print)) +
+          zeile('Zahlungsgebühren (Shopify, PayPal)', F.eurSigned(-m.fees)) +
+          zeile('Rohertrag', F.eur2(m.gross) + ' · ' + F.pct0(m.margin), 'total') +
+        '</div>' +
+        '<div class="guv" style="margin-top:10px">' +
+          zeile('Werbung (Google Ads)', F.eurSigned(-m.ads)) +
+          zeile('Software &amp; Abos', F.eurSigned(-m.software)) +
+          zeile('Agenten <span class="feed-flag ok" style="margin-left:4px">' + D.agents.length + ' Agenten</span>', F.eurSigned(-m.agentCost)) +
+          zeile('Betriebsergebnis', F.eur2(m.operating), 'total') +
+        '</div>' +
+        '<p class="hint">Aus <b>' + receipts(S).length + '</b> Belegen gerechnet — jeder einzeln zugeordnet.</p>',
+      foot: '<button class="btn ghost" data-act="closeDrawer">Schließen</button>' +
+            '<button class="btn ghost" data-act="bu.export" data-arg="datev">DATEV-Export</button>' +
+            '<button class="btn ghost" data-act="bu.export" data-arg="csv">CSV</button>'
+    });
   };
 
   // Öffnet aus dem .peek der Kosten-Karte: der Rest der alten Fläche

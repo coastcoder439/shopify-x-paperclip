@@ -34,7 +34,7 @@
     return '<div class="segbar">' + segs.map(function (s) {
       return '<button class="segbig' + (aktiv === s.id ? ' on' : '') + '" data-act="sicht.seg" data-arg="' + s.id + '">' +
         '<span class="segbig-ico" style="background:' + TINT[s.id] + ';color:' + FG[s.id] + '">' + ICONS[s.id] + '</span>' +
-        '<span><span class="segbig-t">' + s.t + '</span><span class="segbig-v">' + s.v + '</span></span>' +
+        '<span style="display:flex;flex-direction:column"><span class="segbig-t">' + s.t + '</span><span class="segbig-v">' + s.v + '</span></span>' +
       '</button>';
     }).join('') + '</div>';
   }

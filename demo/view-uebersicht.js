@@ -257,7 +257,7 @@
         '<p>Dein Team arbeitet weiter — sobald etwas eine Entscheidung braucht, steht es hier.</p>' +
         (parts.length ? '<div class="hint">Heute ' + parts.join(' · ') + '</div>' : '') + '</div>';
     }
-    return '<div class="duo-grid"><div>' +
+    return '<div class="duo-grid" style="margin-top:26px"><div>' +
       '<div class="section-head"><div><div class="section-title">Agent-Aktivität</div><div class="section-sub">heute</div></div>' +
       '<div class="section-action" data-act="ov.feed">' + (S.feedExpanded ? 'Weniger zeigen ↑' : 'Alles ansehen →') + '</div></div>' +
       '<div class="card feed">' + rows + '</div></div>' +

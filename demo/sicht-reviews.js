@@ -40,9 +40,10 @@
 
   var SEARCH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
   var DIST_COLORS = { 5: '#22A05A', 4: '#5E9E6E', 3: '#F9AB00', 2: '#E08A3C', 1: '#D64545' };
-  // Progressive Disclosure: Bewertungstext auf der Fläche 2-zeilig geklemmt,
-  // der volle Text bleibt im openReview-Drawer (.excerpt) erhalten.
-  var CLAMP2 = 'display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden';
+  // Runde 2: Progressive Disclosure geht weiter als vorher — der Bewertungstext
+  // steht auf der Fläche nur noch einzeilig mit Ellipsis (Listenzeile statt
+  // Karte); der volle Text bleibt im openReview-Drawer (.excerpt) erhalten.
+  var CLAMP1 = 'margin:0;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
 
   /* --- Zeit-Strings der Demo vergleichbar machen (wie in view-support.js) ----- */
   function whenTs(w) {
@@ -89,6 +90,14 @@
       return a.kind === 'support' && a.ticketId === ticketId && a.status === 'open';
     })[0];
   }
+  // Von der Kopf-Karte UND vom rv.openOverview-Drawer genutzt — einmal rechnen.
+  function goodStats(rv) {
+    var entries = rv.verteilung.filter(function (v) { return v.stars >= 4; });
+    return {
+      count: entries.reduce(function (s, v) { return s + v.count; }, 0),
+      share: entries.reduce(function (s, v) { return s + v.share; }, 0)
+    };
+  }
 
   /* --- Block 1: Kopfzeile ------------------------------------------------------- */
   function renderNotices(rv) {
@@ -112,32 +121,34 @@
     '</div>';
   }
 
-  function renderChartsGrid(rv) {
+  // Runde 2: die zwei getrennten Kopf-Karten (4,6-Block + Verteilung) sind zu
+  // EINER Karte mit zwei Spalten zusammengezogen — links Kernzahl + eine
+  // Kontextzeile, rechts die 5 Verteilungs-Zeilen kompakt. Kein charts-grid
+  // mehr. Was an Detail von der Fläche verschwindet (Kritisch/Unbeantwortet/
+  // Ranking-Hinweis), steht unverändert im rv.openOverview-Drawer — die ganze
+  // Karte ist dafür ein Link (Vorgabe 3: ganze Karte als Klickfläche).
+  function renderRatingCard(rv) {
     var avgTxt = rv.avg.toFixed(1).replace('.', ',');
-    var goodEntries = rv.verteilung.filter(function (v) { return v.stars >= 4; });
-    var goodCount = goodEntries.reduce(function (s, v) { return s + v.count; }, 0);
-    var goodShare = goodEntries.reduce(function (s, v) { return s + v.share; }, 0);
+    var good = goodStats(rv);
 
-    var left = '<div class="card card-pad">' +
-      '<div class="rating-hero">' +
-        '<span class="rating-num">' + avgTxt + '</span>' +
-        '<div>' + stars(Math.round(rv.avg), true) +
-          '<div class="stat-sub">aus ' + F.num(rv.total) + ' Bewertungen · ' + F.pct0(rv.quote) + ' deiner Bestellungen</div>' +
+    var left = '<div class="card-pad" style="flex:1.1 1 260px;min-width:240px">' +
+        '<div class="rating-hero">' +
+          '<span class="rating-num">' + avgTxt + '</span>' +
+          '<div>' + stars(Math.round(rv.avg), true) +
+            '<div class="stat-sub">aus ' + F.num(rv.total) + ' Bewertungen · ' + F.pct0(rv.quote) + ' deiner Bestellungen</div>' +
+          '</div>' +
         '</div>' +
-      '</div>' +
-      '<div class="kv-row"><span class="kv-k">Bewertungen mit 4–5 Sternen</span><span class="kv-v">' + F.num(goodCount) + ' (' + F.pct0(goodShare) + ')</span></div>' +
-      '<div class="kv-row"><span class="kv-k">Kritisch (1–3 Sterne)</span><span class="kv-v">' + F.num(rv.kritisch) + '</span></div>' +
-      '<div class="kv-row"><span class="kv-k">Unbeantwortet</span><span class="kv-v">' + F.num(rv.open) + '</span></div>' +
-      '<p class="hint">Nicht zu verwechseln mit dem <b>Ranking</b>: Das ist deine Position bei Google und steht unter „Website“. Das Ranking bringt Leute in den Shop — die Sterne entscheiden, ob sie kaufen.</p>' +
-    '</div>';
+      '</div>';
 
-    var right = '<div class="card">' +
-      '<div class="card-head"><span class="card-title">Verteilung</span><span class="card-title-note">alle ' + F.num(rv.total) + ' Bewertungen</span></div>' +
-      '<div class="card-pad" style="padding-bottom:4px">' + rv.verteilung.map(distRow).join('') + '</div>' +
-      '<div class="traffic-foot"><span>Ø <b>' + avgTxt + '</b> von 5</span><span>' + F.pct0(goodShare) + ' positiv</span></div>' +
-    '</div>';
+    var right = '<div class="card-pad" style="flex:1 1 220px;min-width:220px;border-left:1px solid var(--border-soft)">' +
+        '<div class="card-title-note" style="margin-bottom:4px">Verteilung</div>' +
+        rv.verteilung.map(distRow).join('') +
+      '</div>';
 
-    return '<div class="charts-grid">' + left + right + '</div>';
+    return '<div class="card" data-act="rv.openOverview">' +
+      '<div style="display:flex;flex-wrap:wrap">' + left + right + '</div>' +
+      '<div class="traffic-foot"><span>' + F.num(good.count) + ' mit 4–5 Sternen</span><span>' + F.pct0(good.share) + ' positiv</span></div>' +
+    '</div>';
   }
 
   /* --- Block 3: Liste „Bewertungen" ---------------------------------------------- */
@@ -154,33 +165,19 @@
   }
 
   function reviewRow(r) {
-    var flag = r.status === 'open' ? '<span class="feed-flag warn">wartet auf dich</span>' : '';
-    // Antwort ist auf der Fläche eingeklappt: nur die "Antwort von …"-Zeile.
-    // Der volle Antworttext steht bereits im openReview-Drawer (Block „Antwort").
-    var replyHtml = r.reply
-      ? '<div class="rv-reply"><div class="rv-reply-k">Antwort von Nordwind Studio · ' + F.esc(r.reply.at) + '</div></div>'
-      : '';
-    var footHtml = r.status === 'open'
-      ? '<div style="margin-top:8px;display:flex;gap:8px">' +
-          (r.ticket
-            ? '<button class="btn primary sm" data-act="openTicket" data-arg="' + r.ticket + '">Zum Fall im Kundenservice</button>'
-            : '<button class="btn primary sm" data-act="openReview" data-arg="' + r.id + '">Entwurf ansehen &amp; senden</button>') +
-        '</div>'
-      : '';
-    // Ganze Zeile ist Klickfläche — "row-link" ist dasselbe Hover-/Cursor-Muster,
-    // das die übrigen Tabellenzeilen der Demo schon benutzen (siehe app.css).
-    // Fließtext ist 2-zeilig geklemmt; voller Text steht im openReview-Drawer.
+    var flag = r.status === 'open' ? '<span class="feed-flag warn" style="flex:none">wartet auf dich</span>' : '';
+    // Runde 2: die Fläche zeigt nur noch EINE kompakte Listenzeile — Sterne,
+    // Titel, ein Zeilen-Auszug mit Ellipsis, Meta rechts. Antworttext,
+    // Produkt-Chip, Anfrage-Verweis und Aktionsbutton leben ausschließlich im
+    // openReview-Drawer (siehe dort). "row-link" ist dasselbe Hover-/Cursor-
+    // Muster, das die übrigen Tabellenzeilen der Demo schon benutzen (app.css).
     return '<div class="rv-row row-link' + (r.status === 'open' ? ' open' : '') + '" data-act="openReview" data-arg="' + r.id + '">' +
-      '<div class="rv-head">' + stars(r.stars) + '<span class="rv-title">' + F.esc(r.title) + '</span>' + flag +
-        '<span class="rv-meta">' + F.esc(r.author) + ' · ' + F.esc(r.when) + '</span>' +
+      '<div class="rv-head" style="flex-wrap:nowrap">' +
+        stars(r.stars) +
+        '<span class="rv-title" style="flex:none;white-space:nowrap">' + F.esc(r.title) + '</span>' + flag +
+        '<span class="rv-text" style="' + CLAMP1 + '">' + F.esc(r.text) + '</span>' +
+        '<span class="rv-meta" style="flex:none">' + F.esc(r.author) + ' · ' + F.esc(r.when) + '</span>' +
       '</div>' +
-      '<div class="rv-text" style="' + CLAMP2 + '">' + F.esc(r.text) + '</div>' +
-      '<div class="rv-prod">' +
-        '<span data-act="openDesign" data-arg="' + r.design + '" style="display:inline-flex;align-items:center;gap:6px">' +
-          designSquare(r.design, 18) + '<span>' + F.esc(r.product) + '</span>' +
-        '</span>' + ticketChipFor(r) +
-      '</div>' +
-      replyHtml + footHtml +
     '</div>';
   }
 
@@ -244,8 +241,12 @@
   /* --- Block 5: „Was die Kritik dir sagt" (Render-Teil) -------------------------- */
   function critRow(label, count, total, color) {
     var pct = total ? Math.round((count / total) * 100) : 0;
+    // Runde 2: .traffic-row hat eine feste 108px-Label-Spalte — bei den langen
+    // Ursachen-Labels hier zusätzlich overflow-wrap:anywhere, sonst überfährt
+    // ein langes Wort (z.B. "Erwartungsthema") die Spalte und läuft in den
+    // Balken hinein.
     return '<div class="traffic-row">' +
-      '<div class="traffic-name">' + label + '</div>' +
+      '<div class="traffic-name" style="overflow-wrap:anywhere">' + label + '</div>' +
       '<div class="traffic-bar"><i style="width:' + pct + '%;background:' + color + '"></i></div>' +
       '<div class="traffic-val">' + F.num(count) + ' · ' + pct + '%</div>' +
     '</div>';
@@ -269,12 +270,20 @@
     var kritischList = S.reviews.filter(function (r) { return r.stars <= 3; });
     var withTicket = kritischList.filter(function (r) { return !!r.ticket; }).length;
     var withoutTicket = kritischList.length - withTicket;
+    // Runde 2: beide Karten auf gleiche Dichte gebracht — links bekommt eine
+    // Kopfzeile wie rechts, rechts bekommt einen echten Fuß (margin-top:auto,
+    // wie card-foot ihn links schon hat). Das Fundament (.duo-grid) streckt
+    // beide Karten ohnehin gleich hoch — die Füße sorgen dafür, dass keine
+    // Karte "leerer" wirkt als die andere.
+    var runs = S.filters.rvRuns || {};
+    var doneN = (runs.pflege ? 1 : 0) + (runs.bitte ? 1 : 0);
 
     var left = '<div class="card">' +
       '<div class="card-pad">' +
+        '<div style="font-weight:600;font-size:13.5px;margin-bottom:10px">Woran es liegt</div>' +
         '<div class="traffic">' +
           critRow('Versand/Fehldruck', withTicket, kritischList.length, DIST_COLORS[1]) +
-          critRow('Produkt-/Erwartungsthema', withoutTicket, kritischList.length, DIST_COLORS[3]) +
+          critRow('Pflege/Format', withoutTicket, kritischList.length, DIST_COLORS[3]) +
         '</div>' +
         '<div class="ag-now" style="margin-top:10px"><span class="agent-avatar sm" style="background:' + ida.color + '">' + ida.initials + '</span>' +
           '<span><b>' + F.num(withoutTicket) + ' von ' + F.num(kritischList.length) + '</b> kritischen Bewertungen hängen an keinem Versand- oder Druckfall — es geht um Pflegehinweise und Erwartungen ans Format, nicht ums Motiv. Das lässt sich mit einer Zeile auf der Produktseite lösen, kein Rabatt nötig.</span>' +
@@ -283,12 +292,15 @@
       '<div class="card-foot"><button class="btn ghost sm" data-act="askAgent" data-arg="ida">Ida fragen</button></div>' +
     '</div>';
 
-    var right = '<div class="card card-pad">' +
-      '<div style="font-weight:600;font-size:13.5px;margin-bottom:10px">Was daraus folgt</div>' +
-      proposalItem('pflege', 'Pflegehinweis auf allen Textil-Produktseiten größer setzen',
-        'Betrifft die Kritik ohne Versand- oder Druckfall — bislang steht der Hinweis nur klein auf der Seite.', S, true) +
-      proposalItem('bitte', 'Bewertungs-Erinnerung an zufriedene Kunden',
-        'Fragt Kunden 14 Tage nach Lieferung automatisch nach einer Bewertung.', S, false) +
+    var right = '<div class="card">' +
+      '<div class="card-pad">' +
+        '<div style="font-weight:600;font-size:13.5px;margin-bottom:10px">Was daraus folgt</div>' +
+        proposalItem('pflege', 'Pflegehinweis auf allen Textil-Produktseiten größer setzen',
+          'Betrifft die Kritik ohne Versand- oder Druckfall — bislang steht der Hinweis nur klein auf der Seite.', S, true) +
+        proposalItem('bitte', 'Bewertungs-Erinnerung an zufriedene Kunden',
+          'Fragt Kunden 14 Tage nach Lieferung automatisch nach einer Bewertung.', S, false) +
+      '</div>' +
+      '<div class="card-foot"><span><b>2</b> Vorschläge von Ida</span><span>' + F.num(doneN) + ' davon erledigt</span></div>' +
     '</div>';
 
     return '<div class="section-head"><div><div class="section-title">Was die Kritik dir sagt</div><div class="section-sub">Von Ida ausgewertet · letzte 90 Tage</div></div></div>' +
@@ -300,7 +312,7 @@
   window.SICHT.reviews = {
     render: function (S) {
       var rv = DEMO.reviewStats();
-      return renderNotices(rv) + renderChartsGrid(rv) + renderListSection(S, rv) + renderCritSection(S);
+      return renderNotices(rv) + renderRatingCard(rv) + renderListSection(S, rv) + renderCritSection(S);
     }
   };
 
@@ -311,7 +323,7 @@
 
     var body = '<div class="rating-hero">' + stars(r.stars, true) + '<span class="stat-sub">' + r.stars + ' von 5 Sternen</span></div>' +
       '<div class="excerpt">' + F.esc(r.text) + '</div>' +
-      '<div class="rv-prod">' + designSquare(r.design, 18) + '<span>' + F.esc(r.product) + '</span>' +
+      '<div class="rv-prod">' + designSquare(r.design, 18) + '<span>' + F.esc(r.product) + '</span>' + ticketChipFor(r) +
         '<button class="btn ghost sm" style="margin-left:auto" data-act="openDesign" data-arg="' + r.design + '">Design ansehen</button>' +
       '</div>';
 
@@ -381,6 +393,27 @@
         { type: 'warn', text: 'Wartet' }, 'NOR-51');
     }
     DEMO.render();
+  };
+
+  // Runde 2: Gegenstück zur neuen Kopf-Karte (renderRatingCard) — was dort aus
+  // Platzgründen nicht mehr auf der Fläche steht (Kritisch/Unbeantwortet/
+  // Ranking-Hinweis), steht hier unverändert im Drawer.
+  A['rv.openOverview'] = function () {
+    var rv = DEMO.reviewStats();
+    var avgTxt = rv.avg.toFixed(1).replace('.', ',');
+    var good = goodStats(rv);
+
+    var body = '<div class="kv-row"><span class="kv-k">Bewertungen mit 4–5 Sternen</span><span class="kv-v">' + F.num(good.count) + ' (' + F.pct0(good.share) + ')</span></div>' +
+      '<div class="kv-row"><span class="kv-k">Kritisch (1–3 Sterne)</span><span class="kv-v">' + F.num(rv.kritisch) + '</span></div>' +
+      '<div class="kv-row"><span class="kv-k">Unbeantwortet</span><span class="kv-v">' + F.num(rv.open) + '</span></div>' +
+      '<p class="hint">Nicht zu verwechseln mit dem <b>Ranking</b>: Das ist deine Position bei Google und steht unter „Website“. Das Ranking bringt Leute in den Shop — die Sterne entscheiden, ob sie kaufen.</p>';
+
+    U.drawer({
+      title: 'Bewertungen im Überblick',
+      sub: avgTxt + ' von 5 · aus ' + F.num(rv.total) + ' Bewertungen',
+      body: body,
+      foot: '<button class="btn ghost" data-act="closeDrawer">Schließen</button>'
+    });
   };
 
   /* --- Block 5: Idas Aktionen ------------------------------------------------------ */
